@@ -35,6 +35,15 @@ LCM_DSI_MODE_CON lcm_dsi_mode;
 
 LCM_DRIVER *lcm_driver_list[] = {
 
+#if defined(NT35532_FHD_DSI_VDO_SHARP)
+	&nt35532_fhd_dsi_vdo_sharp_lcm_drv,
+#endif
+#if defined(NT35596_FHD_DSI_VDO_AUO)
+	&nt35596_fhd_dsi_vdo_auo_lcm_drv,
+#endif
+#if defined(NT35532_FHD_DSI_VDO_PANDA)
+        &nt35532_fhd_dsi_vdo_panda_lcm_drv,
+#endif
 #if defined(ST7701S_CTC50_DZX_LFWVGA)
 	&st7701s_ctc50_dzx_lfwvga_lcm_drv,
 #endif

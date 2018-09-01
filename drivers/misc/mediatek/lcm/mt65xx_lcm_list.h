@@ -16,6 +16,9 @@
 
 #include <lcm_drv.h>
 
+extern LCM_DRIVER nt35532_fhd_dsi_vdo_sharp_lcm_drv;
+extern LCM_DRIVER nt35596_fhd_dsi_vdo_auo_lcm_drv;
+extern LCM_DRIVER nt35532_fhd_dsi_vdo_panda_lcm_drv;
 extern LCM_DRIVER st7701s_ctc50_dzx_lfwvga_lcm_drv;
 extern LCM_DRIVER st7703_ivo55_huayu_shd_lcm_drv;
 extern LCM_DRIVER st7701s_hsd50_fsd_lfwvga_lcm_drv;
