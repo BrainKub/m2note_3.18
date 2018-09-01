@@ -738,7 +738,7 @@ static int flashlight_probe(struct platform_device *dev)
 
 /* Vanzo:yangzhihong on: Mon, 18 Jan 2016 21:04:02 +0800
  */
-    flashlight_gpio_init(dev);
+//    flashlight_gpio_init(dev);
 // End of Vanzo:yangzhihong
 
 	logI("[flashlight_probe] Done ~");
