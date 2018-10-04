@@ -41,7 +41,7 @@
 #include <linux/of_irq.h>
 #endif
 #include <linux/sched.h>
-#include "gt9xx_config.h"
+#include "include/config1/gt9xx_config.h"
 
 
 #if TOUCH_FILTER

@@ -11,10 +11,6 @@
  * GNU General Public License for more details.
  */
 
-/* Vanzo:hanshengpeng on: Mon, 04 Dec 2017 17:41:45 +0800
- * for build lk lcm
- */
-#ifndef BUILD_LK
 #include <linux/regulator/consumer.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
@@ -196,5 +192,3 @@ int display_bias_disable(void)
 EXPORT_SYMBOL(display_bias_disable);
 #endif
 
-#endif
-// End of Vanzo:hanshengpeng

@@ -103,6 +103,7 @@ obj-$(CONFIG_MTK_NET_CCMNI) +=  ccmni/
 obj-$(CONFIG_MTK_CCCI_EXT)     +=  dual_ccci/
 obj-$(CONFIG_MTK_ECCCI_DRIVER) += c2k_ccci/
 obj-$(CONFIG_MTK_ECCCI_DRIVER) +=  eccci/
+obj-$(CONFIG_MTK_TOUCHKEY) += touchkey/
 
 ifdef CONFIG_CUSTOM_KERNEL_SSW
 ifneq ($(strip $(CONFIG_CUSTOM_KERNEL_SSW)),"")
@@ -155,7 +156,7 @@ obj-$(CONFIG_MTK_MTD_NAND) += nand/
 obj-$(CONFIG_MTK_DUM_CHAR) += dum-char/
 obj-$(CONFIG_MTK_DYNAMIC_BOOST) += dynamic_boost/
 
-obj-$(CONFIG_MTK_DISPLAY_120HZ_SUPPORT)	+= rrc/
+
 obj-$(CONFIG_MTK_USB2JTAG_SUPPORT) += usb2jtag/
 # Crypto performance tools (disable by default)
 obj-n += crypto/
@@ -167,13 +168,3 @@ obj-$(CONFIG_MTK_TINYSYS_SCP_SUPPORT) += scp/
 obj-$(CONFIG_MTK_TINYSYS_SCP_SUPPORT) += audio_ipi/
 obj-$(CONFIG_USB)	+= usb_boost/
 obj-$(CONFIG_RT_REGMAP) += rt-regmap/
-
-# Vanzo:wuchuanrong on: Tue, 27 Feb 2018 17:10:00 +0800
-# TODO: design for fake dual camera
-#
-ifeq ($(strip $(VANZO_FEATURE_FAKE_DUAL_CAMERA_BY_NAME)),yes)
-ifneq ($(strip $(CUSTOM_FAKE_CAMERA)),)
-subdir-ccflags-y +=            -DCONFIG_FAKE_DUAL_CAMERA
-endif
-endif
-# End of Vanzo: wuchuanrong

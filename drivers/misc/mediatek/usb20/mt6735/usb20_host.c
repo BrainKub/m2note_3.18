@@ -205,12 +205,6 @@ void mt_usb_set_vbus(struct musb *musb, int is_on)
 #ifndef FPGA_PLATFORM
 	if (is_on) {
 		/* power on VBUS, implement later... */
-#if 0
-        bq24158_set_opa_mode(1);
-        bq24158_set_otg_pl(1);
-        bq24158_set_otg_en(1);
-#endif
-#if 1
 	#ifdef CONFIG_MTK_FAN5405_SUPPORT
 		fan5405_set_opa_mode(1);
 		fan5405_set_otg_pl(1);
@@ -222,11 +216,7 @@ void mt_usb_set_vbus(struct musb *musb, int is_on)
 		bq24296_set_boostv(0x7); /* boost voltage 4.998V */
 		bq24296_set_boost_lim(0x1); /* 1.5A on VBUS */
 		bq24296_set_en_hiz(0x0);
-#elif defined(CONFIG_MTK_BQ24158_SUPPORT)
-        bq24158_set_opa_mode(1);
-        bq24158_set_otg_pl(1);
-        bq24158_set_otg_en(1);
-#elif defined(CONFIG_MTK_BQ24196_SUPPORT)
+	#elif defined(CONFIG_MTK_BQ24196_SUPPORT)
 		bq24196_set_otg_config(0x01);	/* OTG */
 		bq24196_set_boost_lim(0x01);	/* 1.3A on VBUS */
 	#elif defined(CONFIG_MTK_NCP1854_SUPPORT)
@@ -247,15 +237,8 @@ void mt_usb_set_vbus(struct musb *musb, int is_on)
 		mt_set_gpio_out(GPIO_OTG_DRVVBUS_PIN, GPIO_OUT_ONE);
 		#endif
 		#endif
-#endif
-
 	} else {
-#if 0
-          bq24158_config_interface_liao(0x01,0x30);
-          bq24158_config_interface_liao(0x02,0x8e);
-#endif
 		/* power off VBUS, implement later... */
-#if 1
 	#ifdef CONFIG_MTK_FAN5405_SUPPORT
 		fan5405_reg_config_interface(0x01, 0x30);
 		fan5405_reg_config_interface(0x02, 0x8e);
@@ -265,9 +248,6 @@ void mt_usb_set_vbus(struct musb *musb, int is_on)
 		bq24296_set_otg_config(0);
 	#elif defined(CONFIG_MTK_BQ24196_SUPPORT)
 		bq24196_set_otg_config(0x0);	/* OTG disabled */
-    #elif defined(CONFIG_MTK_BQ24158_SUPPORT)
-          bq24158_config_interface_liao(0x01,0x30);
-          bq24158_config_interface_liao(0x02,0x8e);
 	#elif defined(CONFIG_MTK_NCP1854_SUPPORT)
 		ncp1854_set_otg_en(0x0);
 	#else
@@ -284,7 +264,6 @@ void mt_usb_set_vbus(struct musb *musb, int is_on)
 		mt_set_gpio_out(GPIO_OTG_DRVVBUS_PIN, GPIO_OUT_ZERO);
 		#endif
 	#endif
-#endif
 	}
 #endif
 }

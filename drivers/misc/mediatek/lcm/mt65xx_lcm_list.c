@@ -34,7 +34,7 @@ LCM_DSI_MODE_CON lcm_dsi_mode;
 #endif
 
 LCM_DRIVER *lcm_driver_list[] = {
-
+//m2note lcm
 #if defined(NT35532_FHD_DSI_VDO_SHARP)
 	&nt35532_fhd_dsi_vdo_sharp_lcm_drv,
 #endif
@@ -44,21 +44,8 @@ LCM_DRIVER *lcm_driver_list[] = {
 #if defined(NT35532_FHD_DSI_VDO_PANDA)
         &nt35532_fhd_dsi_vdo_panda_lcm_drv,
 #endif
-#if defined(ST7701S_CTC50_DZX_LFWVGA)
-	&st7701s_ctc50_dzx_lfwvga_lcm_drv,
-#endif
-#if defined(ST7701S_IVO50_DZX_LFWVGA)
-	&st7701s_ivo50_dzx_lfwvga_lcm_drv,
-#endif
-#if defined(ST7701S_IVO50_XZX_LFWVGA)
-	&st7701s_ivo50_xzx_lfwvga_lcm_drv,
-#endif
-#if defined(ST7701S_IVO50_YKL_LFWVGA)
-	&st7701s_ivo50_ykl_lfwvga_lcm_drv,
-#endif
-#if defined(ILI9806E_HSD50_YKL_LFWVGA)
-	&ili9806e_hsd50_ykl_lfwvga_lcm_drv,
-#endif
+//end
+
 #if defined(ILI9881C_HD_DSI_VDO_ILITEK_NT50358_3LANE)
 	&ili9881c_hd_dsi_vdo_ilitek_nt50358_3lane_lcm_drv,
 #endif
@@ -71,15 +58,6 @@ LCM_DRIVER *lcm_driver_list[] = {
 
 #if defined(NT35595_FHD_DSI_CMD_TRULY_8163)
 	&nt35595_fhd_dsi_cmd_truly_8163_lcm_drv,
-#endif
-#if defined(ST7701S_HSD50_FSD_LFWVGA)
-	&st7701s_hsd50_fsd_lfwvga_lcm_drv,
-#endif
-#if defined(ST7701S_CPT50_ZMA_LFWVGA)
-	&st7701s_cpt50_zma_lfwvga_lcm_drv,
-#endif
-#if defined(ST7703_IVO55_HUAYU_SHD)
-	&st7703_ivo55_huayu_shd_lcm_drv,
 #endif
 
 #if defined(NT35523_WXGA_DSI_VDO_8163)

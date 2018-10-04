@@ -16,16 +16,12 @@
 
 #include <lcm_drv.h>
 
+//m2note lcm
 extern LCM_DRIVER nt35532_fhd_dsi_vdo_sharp_lcm_drv;
 extern LCM_DRIVER nt35596_fhd_dsi_vdo_auo_lcm_drv;
 extern LCM_DRIVER nt35532_fhd_dsi_vdo_panda_lcm_drv;
-extern LCM_DRIVER st7701s_ctc50_dzx_lfwvga_lcm_drv;
-extern LCM_DRIVER st7703_ivo55_huayu_shd_lcm_drv;
-extern LCM_DRIVER st7701s_hsd50_fsd_lfwvga_lcm_drv;
-extern LCM_DRIVER st7701s_cpt50_zma_lfwvga_lcm_drv;
-extern LCM_DRIVER st7701s_ivo50_dzx_lfwvga_lcm_drv;
-extern LCM_DRIVER st7701s_ivo50_xzx_lfwvga_lcm_drv;
-extern LCM_DRIVER st7701s_ivo50_ykl_lfwvga_lcm_drv;
+//end
+
 extern LCM_DRIVER otm1282a_hd720_dsi_vdo_60hz_lcm_drv;
 extern LCM_DRIVER otm1282a_hd720_dsi_vdo_lcm_drv;
 extern LCM_DRIVER nt35595_fhd_dsi_cmd_truly_8163_lcm_drv;
@@ -282,7 +278,6 @@ extern LCM_DRIVER auo_wuxga_dsi_vdo_lcm_drv;
 extern LCM_DRIVER ili9806e_dsi_vdo_tcl_blu5039_drv;
 extern LCM_DRIVER otm8019a_dsi_vdo_boyi_t50m_drv;
 extern LCM_DRIVER ili9881c_hd_dsi_vdo_ilitek_nt50358_3lane_lcm_drv;
-extern LCM_DRIVER ili9806e_hsd50_ykl_lfwvga_lcm_drv;
 #ifdef BUILD_LK
 extern void mdelay(unsigned long msec);
 #endif

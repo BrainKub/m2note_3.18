@@ -1140,9 +1140,7 @@
 			gpio-controller;
 			#gpio-cells = <2>;
 		};
-                smartpa_gpio: smartpa_gpio {
-                        compatible = "mediatek,smartpa_gpio";
-                };
+
 		i2c0:i2c@11007000 {
 			compatible = "mediatek,mt6735m-i2c";
 			cell-index = <0>;
@@ -1204,23 +1202,6 @@
 			vtouch-supply = <&mt_pmic_vgp1_ldo_reg>;
 		};
 
-	 	/*finger satrt add by maowh  */       	
-         	sunwave_fp:sunwave_fp@ {
-			compatible = "mediatek,sunwave-finger";
-		 };
-		 fp_eint:fp_eint{
-           		compatible = "mediatek,fp_eint";
-         	};
-         	/*finger end add by maowh */
-			
-		/*finger satrt by chiponeic */    
-		finger:finger@ {
-			compatible = "mediatek,mtk_finger";
-		};
-		fp_eint_chipone:fp_eint_chipone@{
-           		compatible = "mediatek,fp_eint_chipone";
-         	};
-			
 		accdet: accdet@ {
 			compatible = "mediatek,mt6735-accdet",
 						"mediatek,mt6735m-accdet";
@@ -1823,57 +1804,11 @@
 			reg = <0x11006000 0x1000>;
 			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_LOW>;
 		};
-                flashlightgpio:gpio_flashlight {
-                        compatible = "mediatek, gpio_flashlight";
-                };
-		hall: halleint {
-			compatible = "mediatek, HALL-eint";
-		};
-        
-		home: homkeyeint {
-			compatible = "mediatek, HOME-eint";
-		};
-        
-        fingerprintgd: fingerprintgd@ {
-                         compatible = "mediatek,goodix-fp";
-        };
-		finger_fpsensor: finger_fpsensor {
-			compatible = "mediatek,finger_fpsensor";			
-			interrupt-parent = <&eintc>;
-			interrupts = <5 2>;
-			debounce = <5 0>;
-			status = "okay";
-
-				};
-        dtvdrv:dtv_drv{
-                         compatible = "mediatek,dtv_drv";
-        };
-        dtv: dtv {
-                         compatible = "mediatek, dtv-eint";
-        };
-
-        aw2028_led:aw2028_led_drv {
-
-                        compatible = "mediatek,aw2028_led";
-        };
-
-        hct_finger: hct_finger{
-                         compatible  = "mediatek,hct_finger";
-        };
-	betterlife_fp: bl_finger@ {
-			compatible = "mediatek,betterlife-fp";
-        };
-        vanzo_fp: vanzo_fp {
-            compatible = "mediatek,vanzo-fp";
-        };
-        fingerprint: fingerprint {
-            compatible = "mediatek, fingerprint-eint";
-        };
-	    };
+	};
 	lcm: lcm {
 		compatible = "mediatek,lcm";
 	};
-            
+
 /* sensor part */
 		hwmsensor@0 {
 			compatible = "mediatek,hwmsensor";

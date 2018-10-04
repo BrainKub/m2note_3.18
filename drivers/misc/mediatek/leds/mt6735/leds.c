@@ -873,13 +873,7 @@ int mt_mt65xx_led_set_cust(struct cust_mt65xx_led *cust, int level)
 		/* warning for this API revork */
 		return ((cust_brightness_set) (cust->data)) (level, bl_div_hal);
 
-    case MT65XX_LED_MODE_CUST_BLS_PWM:
-#if (defined(VANZO_DELAY_BACKLIGHT))
-        if((bl_brightness_hal ==0)&&(level != 0))
-        {
-          msleep(200);
-        }
-#endif
+	case MT65XX_LED_MODE_CUST_BLS_PWM:
 		if (strcmp(cust->name, "lcd-backlight") == 0)
 			bl_brightness_hal = level;
 		return ((cust_set_brightness) (cust->data)) (level);

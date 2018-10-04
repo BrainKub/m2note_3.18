@@ -14,15 +14,9 @@
 #ifndef __LCM_DRV_H__
 #define __LCM_DRV_H__
 
-/* Vanzo:hanshengpeng on: Mon, 04 Dec 2017 17:41:45 +0800
- * for build lk lcm
- */
-#ifndef BUILD_LK
 #include <linux/device.h>
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
-#endif
-// End of Vanzo:hanshengpeng
 
 #ifndef ARY_SIZE
 #define ARY_SIZE(x) (sizeof((x)) / sizeof((x[0])))
@@ -795,9 +789,7 @@ typedef struct {
 	int (*set_gpio_dir)(unsigned int pin, unsigned int dir);
 	int (*set_gpio_pull_enable)(unsigned int pin, unsigned char pull_en);
 	long (*set_gpio_lcd_enp_bias)(unsigned int value);
-#ifndef BUILD_LK
 	long (*set_gpio_lcd_enp_bias_ByName)(bool bOn, char *pinName);
-#endif
 	void (*dsi_set_cmdq_V11)(void *cmdq, unsigned int *pdata, unsigned int queue_size,
 				  unsigned char force_update);
 	void (*dsi_set_cmdq_V22)(void *cmdq, unsigned cmd, unsigned char count,

@@ -237,13 +237,6 @@ typedef enum {
 	SENSOR_FEATURE_CHECK_IS_ALIVE,
 	SENSOR_FEATURE_GET_4CELL_DATA,
 	SENSOR_FEATURE_SET_WAKE_LOCK,
-/* Vanzo:wuchuanrong on: Tue, 27 Feb 2018 17:05:06 +0800
- * TODO: modified for fake dual camera
- */
-#if 1 //defined(VANZO_FEATURE_FAKE_DUAL_CAMERA_BY_NAME)
-    SENSOR_FEATURE_GET_YUV_SENSOR_BV,
-#endif
-// End of Vanzo: wuchuanrong
 	SENSOR_FEATURE_MAX
 } ACDK_SENSOR_FEATURE_ENUM;
 
