@@ -6,6 +6,9 @@
 #if defined(MTK_LCM_DEVICE_TREE_SUPPORT)
 extern LCM_DRIVER lcm_common_drv;
 #else
+extern LCM_DRIVER nt35532_fhd_dsi_vdo_sharp_lcm_drv;
+extern LCM_DRIVER nt35596_fhd_dsi_vdo_auo_lcm_drv;
+extern LCM_DRIVER nt35532_fhd_dsi_vdo_panda_lcm_drv;
 extern LCM_DRIVER boyi_otm1287_hd720_dsi_vdo_lcm_drv;
 extern LCM_DRIVER lide_rm68200_hd720_dsi_vdo_lcm_drv;
 extern LCM_DRIVER boyi_otm1901_fhd_dsi_vdo_lcm_drv;

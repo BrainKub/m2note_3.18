@@ -23,6 +23,15 @@ LCM_DRIVER *lcm_driver_list[] = {
 #if defined(MTK_LCM_DEVICE_TREE_SUPPORT)
 	&lcm_common_drv,
 #else
+#if defined(NT35532_FHD_DSI_VDO_SHARP)
+	&nt35532_fhd_dsi_vdo_sharp_lcm_drv,
+#endif
+#if defined(NT35596_FHD_DSI_VDO_AUO)
+	&nt35596_fhd_dsi_vdo_auo_lcm_drv,
+#endif
+#if defined(NT35532_FHD_DSI_VDO_PANDA)
+        &nt35532_fhd_dsi_vdo_panda_lcm_drv,
+#endif
 #if defined(BOYI_OTM1287_HD720_DSI_VDO)
 	&boyi_otm1287_hd720_dsi_vdo_lcm_drv,
 #endif
