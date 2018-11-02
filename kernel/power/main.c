@@ -30,6 +30,7 @@
 #define hib_warn(fmt, ...) pr_warn("[%s][%s]" fmt, _TAG_HIB_M, __func__, ##__VA_ARGS__)
 
 DEFINE_MUTEX(pm_mutex);
+EXPORT_SYMBOL_GPL(pm_mutex);
 
 #ifdef CONFIG_PM_SLEEP
 
@@ -49,19 +50,13 @@ int unregister_pm_notifier(struct notifier_block *nb)
 }
 EXPORT_SYMBOL_GPL(unregister_pm_notifier);
 
-int __pm_notifier_call_chain(unsigned long val, int nr_to_call, int *nr_calls)
+int pm_notifier_call_chain(unsigned long val)
 {
-	int ret;
-
-	ret = __blocking_notifier_call_chain(&pm_chain_head, val, NULL,
-						nr_to_call, nr_calls);
+	int ret = blocking_notifier_call_chain(&pm_chain_head, val, NULL);
 
 	return notifier_to_errno(ret);
 }
-int pm_notifier_call_chain(unsigned long val)
-{
-	return __pm_notifier_call_chain(val, -1, NULL);
-}
+EXPORT_SYMBOL_GPL(pm_notifier_call_chain);
 
 /* If set, devices may be suspended and resumed asynchronously. */
 int pm_async_enabled = 1;

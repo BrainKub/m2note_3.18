@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #ifndef __USB20_H__
 #define __USB20_H__
 
@@ -101,6 +88,7 @@ usb_acm_temp_device,
 
 /* switch charger API*/
 #ifdef CONFIG_MTK_FAN5405_SUPPORT
+extern kal_bool upmu_is_chr_det_otg(void);
 extern void fan5405_set_opa_mode(unsigned int val);
 extern void fan5405_set_otg_pl(unsigned int val);
 extern void fan5405_set_otg_en(unsigned int val);

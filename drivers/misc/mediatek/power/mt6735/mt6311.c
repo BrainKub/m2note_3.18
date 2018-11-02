@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2016 MediaTek Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
- */
-
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>
@@ -40,7 +27,7 @@
 /*#include <mach/eint.h> TBD*/
 
 #include <mt-plat/upmu_common.h>
-#include "mt6311.h"
+#include <mt6311.h>
 
 #include <mach/mt_pmic.h>
 
@@ -121,13 +108,10 @@ unsigned int mt6311_read_byte(unsigned char cmd, unsigned char *returnData)
 {
 	char cmd_buf[1] = { 0x00 };
 	char readData = 0;
-	int ret = 0, org = 0;
-	struct i2c_adapter *adap;
+	int ret = 0;
 
 	mutex_lock(&mt6311_i2c_access);
-	adap = i2c_get_adapter(3);
-	org = adap->timeout;
-	adap->timeout = 10;
+
 	new_client->ext_flag =
 	    ((new_client->ext_flag) & I2C_MASK_FLAG) | I2C_WR_FLAG | I2C_PUSHPULL_FLAG |
 	    I2C_HS_FLAG;
@@ -139,8 +123,6 @@ unsigned int mt6311_read_byte(unsigned char cmd, unsigned char *returnData)
 		PMICLOG1("[mt6311_read_byte] ret=%d\n", ret);
 
 		new_client->ext_flag = 0;
-		adap->timeout = org;
-		i2c_put_adapter(adap);
 		mutex_unlock(&mt6311_i2c_access);
 		return ret;
 	}
@@ -150,8 +132,6 @@ unsigned int mt6311_read_byte(unsigned char cmd, unsigned char *returnData)
 
 	new_client->ext_flag = 0;
 
-	adap->timeout = org;
-	i2c_put_adapter(adap);
 	mutex_unlock(&mt6311_i2c_access);
 	return 1;
 }
@@ -159,13 +139,9 @@ unsigned int mt6311_read_byte(unsigned char cmd, unsigned char *returnData)
 unsigned int mt6311_write_byte(unsigned char cmd, unsigned char writeData)
 {
 	char write_data[2] = { 0 };
-	int ret = 0, org = 0;
-	struct i2c_adapter *adap;
+	int ret = 0;
 
 	mutex_lock(&mt6311_i2c_access);
-	adap = i2c_get_adapter(3);
-	org = adap->timeout;
-	adap->timeout = 10;
 
 	write_data[0] = cmd;
 	write_data[1] = writeData;
@@ -180,15 +156,11 @@ unsigned int mt6311_write_byte(unsigned char cmd, unsigned char writeData)
 		PMICLOG1("[mt6311_write_byte] ret=%d\n", ret);
 
 		new_client->ext_flag = 0;
-		adap->timeout = org;
-		i2c_put_adapter(adap);
 		mutex_unlock(&mt6311_i2c_access);
 		return ret;
 	}
 
 	new_client->ext_flag = 0;
-	adap->timeout = org;
-	i2c_put_adapter(adap);
 	mutex_unlock(&mt6311_i2c_access);
 	return 1;
 }
@@ -6828,8 +6800,10 @@ void mt6311_hw_init(void)
 
 unsigned int mt6311_hw_component_detect(void)
 {
+      #if 0
 	unsigned int ret = 0, chip_id = 0;
 
+//#if 0
 	ret = update_mt6311_chip_id();
 	if (ret < 0) {
 		g_mt6311_hw_exist = 0;
@@ -6849,6 +6823,9 @@ unsigned int mt6311_hw_component_detect(void)
 	} else
 		g_mt6311_hw_exist = 0;
 	PMICLOG1("[mt6311_hw_component_detect] exist=%d\n", g_mt6311_hw_exist);
+#endif
+        g_mt6311_hw_exist = 0;
+
 	return 0;
 }
 
@@ -7196,7 +7173,7 @@ static int mt6311_driver_probe(struct i2c_client *client, const struct i2c_devic
 	int err = 0;
 	unsigned int ret = 0;
 
-	PMICLOG1("[mt6311_driver_probe] 2015-06-19\n");
+	PMICLOG1("[mt6311_driver_probe]\n");
 	/*
 	   new_client = kmalloc(sizeof(struct i2c_client), GFP_KERNEL);
 	   if (new_client == NULL) {
@@ -7209,6 +7186,7 @@ static int mt6311_driver_probe(struct i2c_client *client, const struct i2c_devic
 	new_client = client;
 
 	/*---------------------        */
+	/* force change GPIO to SDA/SCA mode */
 
 	ret = mt6311_hw_component_detect();
 	if (ret < 0) {
@@ -7275,56 +7253,29 @@ static ssize_t show_mt6311_access(struct device *dev, struct device_attribute *a
 static ssize_t store_mt6311_access(struct device *dev, struct device_attribute *attr,
 				   const char *buf, size_t size)
 {
-	int ret = 0;
+	int ret;
 	char *pvalue = NULL, *addr, *val;
 	unsigned int reg_value = 0;
 	unsigned int reg_address = 0;
 
 	pr_err("[store_mt6311_access]\n");
-	if ((size > 10) || (size < 3)) {
-		/*pr_err("[store_mt6311_access] ERR buf is %s [%zu]\n", buf, size);*/
-		return -1;
-	}
 
 	if (buf != NULL && size != 0) {
 		/*PMICLOG1("[store_mt6311_access] buf is %s and size is %d\n",buf,size); */
 		/*reg_address = simple_strtoul(buf, &pvalue, 16); */
 
 		pvalue = (char *)buf;
-		if (size > 5) {
+		if (size > 4) {
 			addr = strsep(&pvalue, " ");
-			if (addr != NULL) {
-				ret = kstrtou32(addr, 16, (unsigned int *)&reg_address);
-				if (ret) {
-					pr_err("[store_mt6311_access] reg_addr ERROR\n");
-					return -1;
-				}
-			} else {
-				pr_err("[store_mt6311_access] addr empty\n");
-				return -1;
-			}
-		} else {
+			ret = kstrtou32(addr, 16, (unsigned int *)&reg_address);
+		} else
 			ret = kstrtou32(pvalue, 16, (unsigned int *)&reg_address);
-			if (ret) {
-				pr_err("[store_mt6311_access] reg_addr ERROR\n");
-				return -1;
-			}
-		}
 		/*ret = kstrtoul(buf, 16, (unsigned long *)&reg_address); */
 
-		if (size > 5) {
+		if (size > 4) {
 			/*reg_value = simple_strtoul((pvalue + 1), NULL, 16); */
 			val = strsep(&pvalue, " ");
-			if (val != NULL) {
-				ret = kstrtou32(val, 16, (unsigned int *)&reg_value);
-				if (ret) {
-					pr_err("[store_mt6311_access] reg_value ERROR\n");
-					return -1;
-				}
-			} else {
-				pr_err("[store_mt6311_access] val empty\n");
-				return -1;
-			}
+			ret = kstrtou32(val, 16, (unsigned int *)&reg_value);
 			pr_err("[store_mt6311_access] write mt6311 reg 0x%x with value 0x%x !\n",
 			       reg_address, reg_value);
 
@@ -7447,13 +7398,11 @@ static int __init mt6311_init(void)
 #endif
 */
 #endif
-
 exit:
 #if defined(CONFIG_ARCH_MT6753)
 	PMIC_INIT_SETTING_V1();
 #else
 #endif
-
 	return ret;
 }
 

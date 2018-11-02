@@ -95,7 +95,7 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
 				 * 15 is ~13-30min depending on RTO.
 				 */
 
-#define TCP_SYN_RETRIES	 6	/* This is how many retries are done
+#define TCP_SYN_RETRIES	 9	/* This is how many retries are done
 				 * when active opening a connection.
 				 * RFC1122 says the minimum retry MUST
 				 * be at least 180secs.  Nevertheless
@@ -277,12 +277,11 @@ extern unsigned int sysctl_tcp_notsent_lowat;
 extern int sysctl_tcp_min_tso_segs;
 extern int sysctl_tcp_autocorking;
 extern int sysctl_tcp_default_init_rwnd;
-extern u32 sysctl_tcp_rto_min;
-extern u32 sysctl_tcp_rto_max;
+extern int sysctl_tcp_rto_min;
+extern int sysctl_tcp_rto_max;
 extern atomic_long_t tcp_memory_allocated;
 extern struct percpu_counter tcp_sockets_allocated;
 extern int tcp_memory_pressure;
-extern int sysctl_tcp_ack_number;
 
 /*
  * The next routines deal with comparing 32 bit unsigned ints
@@ -1087,8 +1086,6 @@ void tcp_set_state(struct sock *sk, int state);
 
 void tcp_done(struct sock *sk);
 
-int tcp_abort(struct sock *sk, int err);
-
 static inline void tcp_sack_reset(struct tcp_options_received *rx_opt)
 {
 	rx_opt->dsack = 0;
@@ -1578,6 +1575,14 @@ struct tcp_iter_state {
 	loff_t			last_pos;
 };
 
+/* MTK_NET_CHANGES */
+/*
+ * reset tcp connection by uid
+ */
+struct uid_err {
+	int appuid;
+	int errNum;
+};
 int tcp_proc_register(struct net *net, struct tcp_seq_afinfo *afinfo);
 void tcp_proc_unregister(struct net *net, struct tcp_seq_afinfo *afinfo);
 
@@ -1605,6 +1610,10 @@ static inline bool tcp_stream_memory_free(const struct sock *sk)
 
 	return notsent_bytes < tcp_notsent_lowat(tp);
 }
+
+/* MTK_NET_CHANGES */
+extern void tcp_v4_reset_connections_by_uid(struct uid_err uid_e);
+extern void tcp_v4_handle_retrans_time_by_uid(struct uid_err uid_e);
 
 extern int tcp_nuke_addr(struct net *net, struct sockaddr *addr);
 

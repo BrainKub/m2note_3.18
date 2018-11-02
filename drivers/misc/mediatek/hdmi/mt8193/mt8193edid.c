@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #ifdef HDMI_MT8193_SUPPORT
 
 #include <linux/interrupt.h>
@@ -37,6 +24,7 @@
 #include <linux/byteorder/generic.h>
 #include <linux/interrupt.h>
 #include <linux/time.h>
+#include <linux/rtpm_prio.h>
 #include <linux/dma-mapping.h>
 #include <linux/syscalls.h>
 #include <linux/reboot.h>
@@ -223,7 +211,6 @@ void vClearEdidInfo(void)
 	if (fgIsHdmiNoEDIDCheck())
 		vSetNoEdidChkInfo();
 
-	mt8193_edidstate = 0;
 
 }
 
@@ -1385,8 +1372,6 @@ void mt8193_checkedid(unsigned char i1noedid)
 		vShowEdidInformation();
 	} else
 		hdmi_show_def_info();
-
-	mt8193_edidstate = 1;
 
 }
 

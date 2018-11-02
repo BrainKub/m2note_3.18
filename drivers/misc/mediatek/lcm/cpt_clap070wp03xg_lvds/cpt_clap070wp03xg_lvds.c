@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #ifndef BUILD_LK
 #include <linux/string.h>
 #endif
@@ -89,7 +76,6 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->height = FRAME_HEIGHT;
 	params->io_select_mode = 0;
 
-	params->density = 213;
 	params->dpi.PLL_CLOCK = 67;
 
 	params->dpi.clk_pol = LCM_POLARITY_FALLING;

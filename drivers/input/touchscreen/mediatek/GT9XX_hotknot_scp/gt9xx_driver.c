@@ -1,23 +1,3 @@
-/* drivers/input/touchscreen/gt1x_tpd.c
- *
- * 2010 - 2014 Goodix Technology.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be a reference
- * to you, when you are integrating the GOODiX's CTP IC into your system,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * Version: 1.0
- * Revision Record:
- *      V1.0:  first release. 2014/09/28.
- *
- */
 #include "tpd.h"
 #define GUP_FW_INFO
 #include "include/tpd_custom_gt9xx.h"
@@ -41,7 +21,7 @@
 #include <linux/of_irq.h>
 #endif
 #include <linux/sched.h>
-#include "include/config1/gt9xx_config.h"
+#include "config1/gt9xx_config.h"
 
 
 #if TOUCH_FILTER
@@ -1052,6 +1032,56 @@ s32 gtp_send_cfg_for_charger(struct i2c_client *client)
 }
 
 #endif
+
+#ifdef GT_TP_SHOW_FW_STATUS   /*--start-----SHOW_FW_STATUS------------*/
+u8 cfg_id = 0;
+u8 fw_id_low = 0,fw_id_high = 0;	//save FW version
+
+static ssize_t tp_fw_status_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, " %d--%x%x\n", cfg_id,fw_id_high,fw_id_low);
+} 
+
+static int read_FW_version(struct i2c_client *client)
+{
+	int ret;
+	
+	ret = i2c_read_bytes(client, 0x8144, &fw_id_low, 1);
+	if (ret < 0)
+	{
+		GTP_ERROR("i2c_read_bytes error.");
+	}
+	ret = i2c_read_bytes(client, 0x8145, &fw_id_high, 1);
+	if (ret < 0)
+	{
+		GTP_ERROR("i2c_read_bytes error.");
+	}
+	ret = i2c_read_bytes(client, 0x8047, &cfg_id, 1);
+	if (ret < 0)
+	{
+		GTP_ERROR("i2c_read_bytes error.");
+	}
+	GTP_ERROR("deng,read_FW_version: %d--%x%x\n",cfg_id,fw_id_high,fw_id_low);
+	return ret;
+}
+
+
+
+static DEVICE_ATTR(fw_status, S_IRUGO,tp_fw_status_show, NULL);
+
+static struct attribute *tp_attributes[] = {
+	&dev_attr_fw_status.attr,
+	NULL
+};
+
+static struct attribute_group tp_attribute_group = {
+	.attrs = tp_attributes
+};
+
+#endif  /*--end-----SHOW_FW_STATUS------------*/
+
+
 /*******************************************************
 Function:
     Read goodix touchscreen version function.
@@ -1081,7 +1111,7 @@ s32 gtp_read_version(struct i2c_client *client, u16 *version)
 	if (version)
 		*version = (buf[7] << 8) | buf[6];
 
-	tpd_info.vid = (buf[7] << 8) | buf[6];
+	tpd_info.vid = *version;
 	tpd_info.pid = 0x00;
 
 	for (i = 0; i < 4; i++) {
@@ -1196,6 +1226,7 @@ static s32 gtp_init_panel(struct i2c_client *client)
 		  charger_cfg_info_len[4], charger_cfg_info_len[5]);
 #endif
 
+
 	GTP_DEBUG("Config Groups\' Lengths: %d, %d, %d, %d, %d, %d",
 		  cfg_info_len[0], cfg_info_len[1], cfg_info_len[2], cfg_info_len[3], cfg_info_len[4], cfg_info_len[5]);
 
@@ -1269,7 +1300,10 @@ static s32 gtp_init_panel(struct i2c_client *client)
 
 			if (1) {
 				grp_cfg_version = send_cfg_buf[sensor_id][0];
-				send_cfg_buf[sensor_id][0] = 0x00;
+				/*--  the next line will write 0x00 to 0x8047 reg ,change version number to V65, wo should  annotation here  ,
+					if we want to update lower FW	 open the next line to change to first VERSION number  --*/
+				//send_cfg_buf[sensor_id][0] = 0x00; GTP_ERROR("deng,will set 0x8017 = 0x00 \n");
+				/*--------------------------*/
 #ifdef CONFIG_GTP_CHARGER_SWITCH
 				charger_grp_cfg_version = send_charger_cfg_buf[sensor_id][0];
 				send_charger_cfg_buf[sensor_id][0] = 0x00;
@@ -1374,9 +1408,16 @@ static s32 gtp_init_panel(struct i2c_client *client)
 #ifdef CONFIG_GTP_CHARGER_SWITCH
 		gtp_charger_switch(1);
 #else
-		ret = gtp_send_cfg(client);
-		if (ret < 0)
-			GTP_ERROR("Send config error.");
+		if(send_cfg_buf[sensor_id][0]> opr_buf[0]){
+			/*update new FW*/
+			ret = gtp_send_cfg(client);
+			if (ret < 0)
+				GTP_ERROR("Send config error.");
+		}
+		else{
+			/*low than now*/
+			GTP_DEBUG("no need to update\n");
+		}
 #endif
 		/* set config version to CTP_CFG_GROUP*/
 		/* for resume to send config*/
@@ -1962,6 +2003,9 @@ static s32 tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *
 {
 	int err = 0;
 	int count = 0;
+#ifdef GT_TP_SHOW_FW_STATUS	
+	struct kobject *tp_kobj;
+#endif
 
 	GTP_INFO("tpd_i2c_probe start.");
 	if (RECOVERY_BOOT == get_boot_mode())
@@ -1979,8 +2023,35 @@ static s32 tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *
 		if (check_flag)
 			break;
 	} while (count < 50);
+
+#ifdef GT_TP_SHOW_FW_STATUS		 /*--start-----SHOW_FW_STATUS------------*/
+	read_FW_version(client);
+	tp_kobj = kobject_create_and_add("tp", NULL);
+	if (!tp_kobj) {
+		goto error_sysfs;
+	}
+	err = sysfs_create_group(tp_kobj,&tp_attribute_group);
+	if (err < 0)
+	{
+		printk("sysfs_create_group fail: %d\n", err);
+		goto error_sysfs;
+	}
+
+#endif	 	/*--end-----SHOW_FW_STATUS------------*/
+	
 	GTP_INFO("tpd_i2c_probe done.count = %d, flag = %d", count, check_flag);
+	return 0;  /*probe succeed*/
+
+
+/*-----------------ERROR--------------------------------------*/
+#ifdef GT_TP_SHOW_FW_STATUS		 /*--start-----SHOW_FW_STATUS------------*/
+error_sysfs:
+	printk("deng, sysfs_create_group fail: %d  ########\n", err);
+	sysfs_remove_group(tp_kobj, &tp_attribute_group);
 	return 0;
+#endif	 	/*--end------SHOW_FW_STATUS------------*/
+
+
 }
 
 #ifdef CONFIG_OF_TOUCH
@@ -2233,6 +2304,7 @@ static void tpd_up(s32 x, s32 y, s32 id)
 		return;
 	}
 #endif
+
 	input_report_key(tpd->dev, BTN_TOUCH, 0);
 	input_mt_sync(tpd->dev);
 	TPD_DEBUG_SET_TIME;
@@ -2318,7 +2390,7 @@ static void gtp_charger_switch(s32 dir_update)
 
 static int touch_event_handler(void *unused)
 {
-	struct sched_param param = {.sched_priority = 4 };
+	struct sched_param param = {.sched_priority = RTPM_PRIO_TPD };
 	u8 end_cmd[3] = { GTP_READ_COOR_ADDR >> 8, GTP_READ_COOR_ADDR & 0xFF, 0 };
 	u8 point_data[2 + 1 + 8 * GTP_MAX_TOUCH + 1] = { GTP_READ_COOR_ADDR >> 8, GTP_READ_COOR_ADDR & 0xFF };
 	u8 touch_num = 0;
@@ -2356,7 +2428,6 @@ static int touch_event_handler(void *unused)
 #if GTP_SLIDE_WAKEUP
 	u8 doze_buf[3] = { 0x81, 0x4B };
 #endif
-
 
 	sched_setscheduler(current, SCHED_RR, &param);
 	do {

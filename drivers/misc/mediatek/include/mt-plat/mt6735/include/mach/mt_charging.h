@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #ifndef _CUST_BAT_H_
 #define _CUST_BAT_H_
 
@@ -39,7 +26,7 @@
 #define USB_CHARGER_CURRENT_CONFIGURED		CHARGE_CURRENT_500_00_MA
 
 #define USB_CHARGER_CURRENT					CHARGE_CURRENT_500_00_MA
-#define AC_CHARGER_CURRENT					CHARGE_CURRENT_800_00_MA
+#define AC_CHARGER_CURRENT					CHARGE_CURRENT_1500_00_MA
 #define NON_STD_AC_CHARGER_CURRENT			CHARGE_CURRENT_500_00_MA
 #define CHARGING_HOST_CHARGER_CURRENT       CHARGE_CURRENT_650_00_MA
 #define APPLE_0_5A_CHARGER_CURRENT          CHARGE_CURRENT_500_00_MA
@@ -71,7 +58,7 @@
 //#define BATTERY_NOTIFY_CASE_0005_TOTAL_CHARGINGTIME
 */
 /* High battery support */
-/*#define HIGH_BATTERY_VOLTAGE_SUPPORT*/
+#define HIGH_BATTERY_VOLTAGE_SUPPORT
 
 /* JEITA parameter */
 /*#define MTK_JEITA_STANDARD_SUPPORT*/
@@ -110,6 +97,10 @@
 /* Disable Battery check for HQA */
 #ifdef CONFIG_MTK_DISABLE_POWER_ON_OFF_VOLTAGE_LIMITATION
 #define CONFIG_DIS_CHECK_BATTERY
+#else
+    #ifndef USER_BUILD_KERNEL
+        #define CONFIG_DIS_CHECK_BATTERY
+    #endif
 #endif
 
 #ifdef CONFIG_MTK_FAN5405_SUPPORT

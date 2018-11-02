@@ -33,7 +33,7 @@ struct cpa_data {
 	pgd_t		*pgd;
 	pgprot_t	mask_set;
 	pgprot_t	mask_clr;
-	unsigned long	numpages;
+	int		numpages;
 	int		flags;
 	unsigned long	pfn;
 	unsigned	force_split : 1;
@@ -281,7 +281,7 @@ static inline pgprot_t static_protections(pgprot_t prot, unsigned long address,
 		   __pa_symbol(__end_rodata) >> PAGE_SHIFT))
 		pgprot_val(forbidden) |= _PAGE_RW;
 
-#if defined(CONFIG_X86_64)
+#if defined(CONFIG_X86_64) && defined(CONFIG_DEBUG_RODATA)
 	/*
 	 * Once the kernel maps the text as RO (kernel_set_to_readonly is set),
 	 * kernel text mappings for the large page aligned text, rodata sections
@@ -1293,7 +1293,7 @@ static int __change_page_attr_set_clr(struct cpa_data *cpa, int checkalias)
 		 * CPA operation. Either a large page has been
 		 * preserved or a single page update happened.
 		 */
-		BUG_ON(cpa->numpages > numpages || !cpa->numpages);
+		BUG_ON(cpa->numpages > numpages);
 		numpages -= cpa->numpages;
 		if (cpa->flags & (CPA_PAGES_ARRAY | CPA_ARRAY))
 			cpa->curpage++;
@@ -1828,6 +1828,7 @@ void kernel_map_pages(struct page *page, int numpages, int enable)
 
 	arch_flush_lazy_mmu_mode();
 }
+EXPORT_SYMBOL_GPL(kernel_map_pages);
 
 #ifdef CONFIG_HIBERNATION
 
@@ -1842,6 +1843,7 @@ bool kernel_page_present(struct page *page)
 	pte = lookup_address((unsigned long)page_address(page), &level);
 	return (pte_val(*pte) & _PAGE_PRESENT);
 }
+EXPORT_SYMBOL_GPL(kernel_page_present);
 #endif /* CONFIG_HIBERNATION */
 
 #endif /* CONFIG_DEBUG_PAGEALLOC */

@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -38,6 +25,13 @@
 #include <linux/i2c.h>
 #include <linux/leds.h>
 
+#include <linux/gpio.h>
+
+
+//#include <cust_gpio_usage.h>
+
+
+#define GPIO_FLASHLIGHT 1
 
 
 /******************************************************************************
@@ -84,8 +78,8 @@ static DEFINE_MUTEX(g_strobeSem);
 
 static struct work_struct workTimeOut;
 
-/* #define FLASH_GPIO_ENF GPIO12 */
-/* #define FLASH_GPIO_ENT GPIO13 */
+#define GPIO_ENF 43 
+#define GPIO_ENT 42 
 
 static int g_bLtVersion;
 
@@ -267,8 +261,10 @@ int readReg(int reg)
 
 int FL_Enable(void)
 {
+#ifndef  GPIO_FLASHLIGHT
 	char buf[2];
 /* char bufR[2]; */
+
 	if (g_duty < 0)
 		g_duty = 0;
 	else if (g_duty > 16)
@@ -325,13 +321,29 @@ int FL_Enable(void)
 	readReg(0xb);
 
 	return 0;
+#else
+	if(g_duty==0)
+	{
+		gpio_set_value(GPIO_ENT,0);
+		gpio_set_value(GPIO_ENF,1);
+		PK_DBG(" FL_Enable line=%d\n",__LINE__);
+	}
+	else
+	{
+		gpio_set_value(GPIO_ENT,1);
+		gpio_set_value(GPIO_ENF,0);
+		PK_DBG(" FL_Enable line=%d\n",__LINE__);
+	}
+    return 0;
+#endif
 }
 
 
 
 int FL_Disable(void)
 {
-	char buf[2];
+#ifndef  GPIO_FLASHLIGHT
+		char buf[2];
 
 /* ///////////////////// */
 	buf[0] = 10;
@@ -340,6 +352,12 @@ int FL_Disable(void)
 	LM3642_write_reg(LM3642_i2c_client, buf[0], buf[1]);
 	PK_DBG(" FL_Disable line=%d\n", __LINE__);
 	return 0;
+#else
+	gpio_set_value(GPIO_ENT,0);
+	gpio_set_value(GPIO_ENF,0);
+	PK_DBG(" FL_Disable line=%d\n",__LINE__);
+    return 0;
+#endif
 }
 
 int FL_dim_duty(kal_uint32 duty)
@@ -359,6 +377,7 @@ int FL_Init(void)
 
 	buf[0] = 0xa;
 	buf[1] = 0x0;
+
 	/* iWriteRegI2C(buf , 2, STROBE_DEVICE_ID); */
 	LM3642_write_reg(LM3642_i2c_client, buf[0], buf[1]);
 
@@ -433,16 +452,12 @@ enum hrtimer_restart ledTimeOutCallback(struct hrtimer *timer)
 static struct hrtimer g_timeOutTimer;
 void timerInit(void)
 {
-	static int init_flag;
-
-	if (init_flag == 0) {
-		init_flag = 1;
-		INIT_WORK(&workTimeOut, work_timeOutFunc);
-		g_timeOutTimeMs = 1000;
-		hrtimer_init(&g_timeOutTimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-		g_timeOutTimer.function = ledTimeOutCallback;
-	}
+	INIT_WORK(&workTimeOut, work_timeOutFunc);
+	g_timeOutTimeMs = 1000;
+	hrtimer_init(&g_timeOutTimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	g_timeOutTimer.function = ledTimeOutCallback;
 }
+
 
 
 static int constant_flashlight_ioctl(unsigned int cmd, unsigned long arg)
@@ -481,10 +496,8 @@ static int constant_flashlight_ioctl(unsigned int cmd, unsigned long arg)
 	case FLASH_IOC_SET_ONOFF:
 		PK_DBG("FLASHLIGHT_ONOFF: %d\n", (int)arg);
 		if (arg == 1) {
-
 			int s;
 			int ms;
-
 			if (g_timeOutTimeMs > 1000) {
 				s = g_timeOutTimeMs / 1000;
 				ms = g_timeOutTimeMs - s * 1000;
@@ -492,10 +505,8 @@ static int constant_flashlight_ioctl(unsigned int cmd, unsigned long arg)
 				s = 0;
 				ms = g_timeOutTimeMs;
 			}
-
 			if (g_timeOutTimeMs != 0) {
 				ktime_t ktime;
-
 				ktime = ktime_set(s, ms * 1000000);
 				hrtimer_start(&g_timeOutTimer, ktime, HRTIMER_MODE_REL);
 			}
@@ -584,7 +595,7 @@ MUINT32 constantFlashlightInit(PFLASHLIGHT_FUNCTION_STRUCT *pfFunc)
 		*pfFunc = &constantFlashlightFunc;
 	return 0;
 }
-EXPORT_SYMBOL(constantFlashlightInit);
+
 
 
 /* LED flash control for high current capture mode*/

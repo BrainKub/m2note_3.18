@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #ifndef __mt8193edid_h__
 #define __mt8193edid_h__
 #ifdef HDMI_MT8193_SUPPORT
@@ -328,7 +315,6 @@ extern void mt8193_AppGetEdidInfo(HDMI_EDID_T *pv_get_info);
 extern unsigned char vCheckPcmBitSize(unsigned char ui1ChNumInx);
 extern unsigned char mt8193_Check_EdidHeader(void);
 extern void hdmi_show_def_info(void);
-extern unsigned int mt8193_edidstate;
 
 #endif
 #endif

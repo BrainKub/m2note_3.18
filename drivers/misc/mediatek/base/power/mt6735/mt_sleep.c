@@ -1,16 +1,3 @@
-/*
-* Copyright (C) 2016 MediaTek Inc.
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License version 2 as
-* published by the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See http://www.gnu.org/licenses/gpl-2.0.html for more details.
-*/
-
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -136,7 +123,7 @@ static int slp_suspend_ops_begin(suspend_state_t state)
 {
     /* legacy log */
 
-		/*slp_notice("@@@Chip_pm_begin(%u)(%u)@@@\n", is_cpu_pdn(slp_spm_flags), is_infra_pdn(slp_spm_flags));*/
+		slp_notice("@@@Chip_pm_begin(%u)(%u)@@@\n", is_cpu_pdn(slp_spm_flags), is_infra_pdn(slp_spm_flags));
 
 
 		slp_wake_reason = WR_NONE;
@@ -148,7 +135,7 @@ static int slp_suspend_ops_prepare(void)
 {
     /* legacy log */
 
-		/*slp_crit2("@@@Chip_pm_prepare@@@\n");*/
+		slp_crit2("@@@Chip_pm_prepare@@@\n");
 
 		return 0;
 }
@@ -242,7 +229,7 @@ static int slp_suspend_ops_enter(suspend_state_t state)
 
     /* legacy log */
 
-		/*slp_crit2("@@@Chip_pm_enter@@@\n");*/
+		slp_crit2("@@@Chip_pm_enter@@@\n");
 
 
 
@@ -271,14 +258,6 @@ static int slp_suspend_ops_enter(suspend_state_t state)
 				goto LEAVE_SLEEP;
 		}
 
-#if !defined(CONFIG_FPGA_EARLY_PORTING)
-	if (!spm_load_firmware_status()) {
-		slp_error("SPM FIRMWARE IS NOT READY\n");
-		ret = -EPERM;
-		goto LEAVE_SLEEP;
-	}
-#endif
-
 /*
 #if defined(CONFIG_ARCH_MT6735M)
 #if SLP_SLEEP_DPIDLE_EN
@@ -302,7 +281,7 @@ static void slp_suspend_ops_finish(void)
 {
     /* legacy log */
 
-		/*slp_crit2("@@@Chip_pm_finish@@@\n");*/
+		slp_crit2("@@@Chip_pm_finish@@@\n");
 
 }
 
@@ -310,7 +289,7 @@ static void slp_suspend_ops_end(void)
 {
     /* legacy log */
 
-		/*slp_notice("@@@Chip_pm_end@@@\n");*/
+		slp_notice("@@@Chip_pm_end@@@\n");
 
 }
 

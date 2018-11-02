@@ -387,12 +387,11 @@ static int ashmem_mmap(struct file *file, struct vm_area_struct *vma)
 			name = asma->name;
 
 		/* ... and allocate the backing shmem file */
-		vmfile = shmem_file_setup(name, asma->size, vma->vm_flags);
+		vmfile = shmem_file_setup(name, asma->size, vma->vm_flags, 0);
 		if (unlikely(IS_ERR(vmfile))) {
 			ret = PTR_ERR(vmfile);
 			goto out;
 		}
-		vmfile->f_mode |= FMODE_LSEEK;
 		asma->file = vmfile;
 	}
 	get_file(asma->file);
@@ -753,12 +752,10 @@ static long ashmem_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		break;
 	case ASHMEM_SET_SIZE:
 		ret = -EINVAL;
-		mutex_lock(&ashmem_mutex);
 		if (!asma->file) {
 			ret = 0;
 			asma->size = (size_t) arg;
 		}
-		mutex_unlock(&ashmem_mutex);
 		break;
 	case ASHMEM_GET_SIZE:
 		ret = asma->size;

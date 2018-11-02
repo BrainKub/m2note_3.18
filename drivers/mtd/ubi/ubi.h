@@ -436,8 +436,6 @@ struct ubi_debug_info {
  * @fm_size: fastmap size in bytes
  * @fm_sem: allows ubi_update_fastmap() to block EBA table changes
  * @fm_work: fastmap work queue
- * @fm_work_scheduled: non-zero if fastmap work was scheduled
- * @fast_attach: non-zero if UBI was attached by fastmap
  *
  * @used: RB-tree of used physical eraseblocks
  * @erroneous: RB-tree of erroneous used physical eraseblocks
@@ -449,7 +447,7 @@ struct ubi_debug_info {
  * @pq_head: protection queue head
  * @wl_lock: protects the @used, @free, @pq, @pq_head, @lookuptbl, @move_from,
  *	     @move_to, @move_to_put @erase_pending, @wl_scheduled, @works,
- *	     @erroneous, @erroneous_peb_count, and @fm_work_scheduled fields
+ *	     @erroneous, and @erroneous_peb_count fields
  * @move_mutex: serializes eraseblock moves
  * @work_sem: used to wait for all the scheduled works to finish and prevent
  * new works from being submitted
@@ -556,8 +554,6 @@ struct ubi_device {
 	void *fm_buf;
 	size_t fm_size;
 	struct work_struct fm_work;
-	int fm_work_scheduled;
-	int fast_attach;
 
 	/* Wear-leveling sub-system's stuff */
 	struct rb_root used;
@@ -1057,7 +1053,7 @@ ubi_zalloc_vid_hdr(const struct ubi_device *ubi, gfp_t gfp_flags)
 {
 	void *vid_hdr;
 
-	vid_hdr = vzalloc(ubi->vid_hdr_alsize);
+	vid_hdr = kzalloc(ubi->vid_hdr_alsize, gfp_flags);
 	if (!vid_hdr)
 		return NULL;
 
@@ -1081,7 +1077,7 @@ static inline void ubi_free_vid_hdr(const struct ubi_device *ubi,
 	if (!p)
 		return;
 
-	vfree(p - ubi->vid_hdr_shift);
+	kfree(p - ubi->vid_hdr_shift);
 }
 
 /*

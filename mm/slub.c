@@ -177,11 +177,6 @@ static inline bool kmem_cache_has_cpu_partial(struct kmem_cache *s)
  */
 #define DEBUG_METADATA_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER)
 
-/*
- * Disable SLAG_STORE_USER for low memory device
- */
-#define DEBUG_LOWMEM_FLAGS (SLAB_RED_ZONE | SLAB_POISON)
-
 #define OO_SHIFT	16
 #define OO_MASK		((1 << OO_SHIFT) - 1)
 #define MAX_OBJS_PER_PAGE	32767 /* since page.objects is u15 */
@@ -958,12 +953,12 @@ static int check_slab(struct kmem_cache *s, struct page *page)
 	maxobj = order_objects(compound_order(page), s->size, s->reserved);
 	if (page->objects > maxobj) {
 		slab_err(s, page, "objects %u > max %u",
-			page->objects, maxobj);
+			s->name, page->objects, maxobj);
 		return 0;
 	}
 	if (page->inuse > page->objects) {
 		slab_err(s, page, "inuse %u > max %u",
-			page->inuse, page->objects);
+			s->name, page->inuse, page->objects);
 		return 0;
 	}
 	/* Slab_pad_check fixes things up after itself */
@@ -980,7 +975,7 @@ static int on_freelist(struct kmem_cache *s, struct page *page, void *search)
 	int nr = 0;
 	void *fp;
 	void *object = NULL;
-	int max_objects;
+	unsigned long max_objects;
 
 	fp = page->freelist;
 	while (fp && nr <= page->objects) {
@@ -1207,11 +1202,7 @@ fail:
 
 static int __init setup_slub_debug(char *str)
 {
-#ifdef CONFIG_MTK_LOW_RAM_DEBUG
-	slub_debug = DEBUG_LOWMEM_FLAGS;
-#else
 	slub_debug = DEBUG_DEFAULT_FLAGS;
-#endif
 	if (*str++ != '=' || !*str)
 		/*
 		 * No options specified. Switch on full debugging.
@@ -3143,7 +3134,6 @@ static int calculate_sizes(struct kmem_cache *s, int forced_order)
 		return 0;
 
 	s->allocflags = 0;
-	s->allocflags |= GFP_DMA;
 	if (order)
 		s->allocflags |= __GFP_COMP;
 
@@ -3414,39 +3404,6 @@ void *__kmalloc_node(size_t size, gfp_t flags, int node)
 }
 EXPORT_SYMBOL(__kmalloc_node);
 #endif
-
-#ifdef CONFIG_HARDENED_USERCOPY
-/*
- * Rejects objects that are incorrectly sized.
- *
- * Returns NULL if check passes, otherwise const char * to name of cache
- * to indicate an error.
- */
-const char *__check_heap_object(const void *ptr, unsigned long n,
-				struct page *page)
-{
-	struct kmem_cache *s;
-	unsigned long offset;
-	size_t object_size;
-
-	/* Find object and usable object size. */
-	s = page->slab_cache;
-	object_size = slab_ksize(s);
-
-	/* Reject impossible pointers. */
-	if (ptr < page_address(page))
-		return s->name;
-
-	/* Find offset within object. */
-	offset = (ptr - page_address(page)) % s->size;
-
-	/* Allow address range falling entirely within object size. */
-	if (offset <= object_size && n <= object_size - offset)
-		return NULL;
-
-	return s->name;
-}
-#endif /* CONFIG_HARDENED_USERCOPY */
 
 size_t ksize(const void *object)
 {
@@ -5125,7 +5082,6 @@ static void memcg_propagate_slab_attrs(struct kmem_cache *s)
 		char mbuf[64];
 		char *buf;
 		struct slab_attribute *attr = to_slab_attr(slab_attrs[i]);
-		ssize_t len;
 
 		if (!attr || !attr->store || !attr->show)
 			continue;
@@ -5150,9 +5106,8 @@ static void memcg_propagate_slab_attrs(struct kmem_cache *s)
 			buf = buffer;
 		}
 
-		len = attr->show(root_cache, buf);
-		if (len > 0)
-			attr->store(s, buf, len);
+		attr->show(root_cache, buf);
+		attr->store(s, buf, strlen(buf));
 	}
 
 	if (buffer)
@@ -5449,9 +5404,6 @@ static int mtk_memcfg_add_location(struct loc_track *t, struct kmem_cache *s,
 #endif
 			break;
 	}
-	/* copy all addrs if we cannot match track->addr */
-	if (i == TRACK_ADDRS_COUNT)
-		i = 0;
 	cnt = min(MTK_MEMCFG_SLABTRACE_CNT, TRACK_ADDRS_COUNT - i);
 #ifdef MTK_COMPACT_SLUB_TRACK
 	{

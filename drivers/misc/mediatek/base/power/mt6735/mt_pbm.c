@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #define pr_fmt(fmt)		"[PBM] " fmt
 
 #include <linux/kernel.h>
@@ -33,8 +20,8 @@
 #include <mach/mt_pbm.h>
 #include <mach/upmu_sw.h>
 #include <mt-plat/upmu_common.h>
-#include "mt_cpufreq.h"
-#include "mt_gpufreq.h"
+#include <mt_cpufreq.h>
+#include <mt_gpufreq.h>
 #include <mach/mt_thermal.h>
 
 #ifndef DISABLE_PBM_FEATURE
@@ -530,22 +517,22 @@ _mt_pbm_pm_callback(struct notifier_block *nb,
 	switch (action) {
 
 	case PM_SUSPEND_PREPARE:
-		pbm_debug("PM_SUSPEND_PREPARE:start\n");
+		pbm_err("PM_SUSPEND_PREPARE:start\n");
 		mutex_lock(&pbm_mutex);
 		g_dlpt_need_do = 0;
 		mutex_unlock(&pbm_mutex);
-		pbm_debug("PM_SUSPEND_PREPARE:end\n");
+		pbm_err("PM_SUSPEND_PREPARE:end\n");
 		break;
 
 	case PM_HIBERNATION_PREPARE:
 		break;
 
 	case PM_POST_SUSPEND:
-		pbm_debug("PM_POST_SUSPEND:start\n");
+		pbm_err("PM_POST_SUSPEND:start\n");
 		mutex_lock(&pbm_mutex);
 		g_dlpt_need_do = 1;
 		mutex_unlock(&pbm_mutex);
-		pbm_debug("PM_POST_SUSPEND:end\n");
+		pbm_err("PM_POST_SUSPEND:end\n");
 		break;
 
 	case PM_POST_HIBERNATION:
@@ -714,7 +701,7 @@ static int __init pbm_module_init(void)
 }
 
 #endif				/* #ifndef DISABLE_PBM_FEATURE */
-EXPORT_SYMBOL(kicker_pbm_by_flash);
+
 static void __exit pbm_module_exit(void)
 {
 

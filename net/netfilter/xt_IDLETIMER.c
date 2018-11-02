@@ -286,7 +286,6 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
 		goto out;
 	}
 
-	sysfs_attr_init(&info->timer->attr.attr);
 	info->timer->attr.attr.name = kstrdup(info->label, GFP_KERNEL);
 	if (!info->timer->attr.attr.name) {
 		ret = -ENOMEM;
@@ -456,7 +455,6 @@ static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
 		del_timer_sync(&info->timer->timer);
 		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
 		unregister_pm_notifier(&info->timer->pm_nb);
-		cancel_work_sync(&info->timer->work);
 		kfree(info->timer->attr.attr.name);
 		kfree(info->timer);
 	} else {

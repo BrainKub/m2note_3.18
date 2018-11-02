@@ -1,15 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of version 2 of the GNU General Public License
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
 #include <linux/types.h>
 #include <mt-plat/charging.h>
 #include <mt-plat/upmu_common.h>
@@ -20,17 +8,6 @@
 #include <mach/mt_charging.h>
 #include <mach/mt_pmic.h>
 #include "fan5405.h"
-#ifdef CONFIG_ONTIM_DSM
-#include <ontim/ontim_dsm.h>
-
-struct dsm_dev fan5405_dsm_dev = {
-	.type = OMTIM_DSM_DEV_TYPE_POWER,
-	.id = OMTIM_DSM_DEV_ID_CHARGER,
-	.name = "Fan5405_charger",
-	.buff_size = 1024,
-};
-struct dsm_client *fan5405_dsm_client = NULL;
-#endif
 
 /* ============================================================ // */
 /* Define */
@@ -51,37 +28,23 @@ int wireless_charger_gpio_number = (168 | 0x80000000);
 #endif
 
 const u32 VBAT_CV_VTH[] = {
-	BATTERY_VOLT_03_500000_V, BATTERY_VOLT_03_520000_V, BATTERY_VOLT_03_540000_V,
-	    BATTERY_VOLT_03_560000_V,
-	BATTERY_VOLT_03_580000_V, BATTERY_VOLT_03_600000_V, BATTERY_VOLT_03_620000_V,
-	    BATTERY_VOLT_03_640000_V,
-	BATTERY_VOLT_03_660000_V, BATTERY_VOLT_03_680000_V, BATTERY_VOLT_03_700000_V,
-	    BATTERY_VOLT_03_720000_V,
-	BATTERY_VOLT_03_740000_V, BATTERY_VOLT_03_760000_V, BATTERY_VOLT_03_780000_V,
-	    BATTERY_VOLT_03_800000_V,
-	BATTERY_VOLT_03_820000_V, BATTERY_VOLT_03_840000_V, BATTERY_VOLT_03_860000_V,
-	    BATTERY_VOLT_03_880000_V,
-	BATTERY_VOLT_03_900000_V, BATTERY_VOLT_03_920000_V, BATTERY_VOLT_03_940000_V,
-	    BATTERY_VOLT_03_960000_V,
-	BATTERY_VOLT_03_980000_V, BATTERY_VOLT_04_000000_V, BATTERY_VOLT_04_020000_V,
-	    BATTERY_VOLT_04_040000_V,
-	BATTERY_VOLT_04_060000_V, BATTERY_VOLT_04_080000_V, BATTERY_VOLT_04_100000_V,
-	    BATTERY_VOLT_04_120000_V,
-	BATTERY_VOLT_04_140000_V, BATTERY_VOLT_04_160000_V, BATTERY_VOLT_04_180000_V,
-	    BATTERY_VOLT_04_200000_V,
-	BATTERY_VOLT_04_220000_V, BATTERY_VOLT_04_240000_V, BATTERY_VOLT_04_260000_V,
-	    BATTERY_VOLT_04_280000_V,
-	BATTERY_VOLT_04_300000_V, BATTERY_VOLT_04_320000_V, BATTERY_VOLT_04_340000_V,
-	    BATTERY_VOLT_04_360000_V,
-	BATTERY_VOLT_04_380000_V, BATTERY_VOLT_04_400000_V, BATTERY_VOLT_04_420000_V,
-	    BATTERY_VOLT_04_440000_V
+	BATTERY_VOLT_03_500000_V,   BATTERY_VOLT_03_520000_V,	BATTERY_VOLT_03_540000_V,   BATTERY_VOLT_03_560000_V,
+	BATTERY_VOLT_03_580000_V,   BATTERY_VOLT_03_600000_V,	BATTERY_VOLT_03_620000_V,   BATTERY_VOLT_03_640000_V,
+	BATTERY_VOLT_03_660000_V,	BATTERY_VOLT_03_680000_V,	BATTERY_VOLT_03_700000_V,	BATTERY_VOLT_03_720000_V,
+	BATTERY_VOLT_03_740000_V,	BATTERY_VOLT_03_760000_V,	BATTERY_VOLT_03_780000_V,	BATTERY_VOLT_03_800000_V,
+	BATTERY_VOLT_03_820000_V,	BATTERY_VOLT_03_840000_V,	BATTERY_VOLT_03_860000_V,	BATTERY_VOLT_03_880000_V,
+	BATTERY_VOLT_03_900000_V,	BATTERY_VOLT_03_920000_V,	BATTERY_VOLT_03_940000_V,	BATTERY_VOLT_03_960000_V,
+	BATTERY_VOLT_03_980000_V,	BATTERY_VOLT_04_000000_V,	BATTERY_VOLT_04_020000_V,	BATTERY_VOLT_04_040000_V,
+	BATTERY_VOLT_04_060000_V,	BATTERY_VOLT_04_080000_V,	BATTERY_VOLT_04_100000_V,	BATTERY_VOLT_04_120000_V,
+	BATTERY_VOLT_04_140000_V,   BATTERY_VOLT_04_160000_V,	BATTERY_VOLT_04_180000_V,   BATTERY_VOLT_04_200000_V,
+	BATTERY_VOLT_04_220000_V,   BATTERY_VOLT_04_240000_V,	BATTERY_VOLT_04_260000_V,   BATTERY_VOLT_04_280000_V,
+	BATTERY_VOLT_04_300000_V,   BATTERY_VOLT_04_320000_V,	BATTERY_VOLT_04_340000_V,   BATTERY_VOLT_04_360000_V,	
+	BATTERY_VOLT_04_380000_V,   BATTERY_VOLT_04_400000_V,	BATTERY_VOLT_04_420000_V,   BATTERY_VOLT_04_440000_V	
 };
 
 const u32 CS_VTH[] = {
-	CHARGE_CURRENT_550_00_MA, CHARGE_CURRENT_650_00_MA, CHARGE_CURRENT_750_00_MA,
-	    CHARGE_CURRENT_850_00_MA,
-	CHARGE_CURRENT_950_00_MA, CHARGE_CURRENT_1050_00_MA, CHARGE_CURRENT_1150_00_MA,
-	    CHARGE_CURRENT_1250_00_MA
+	CHARGE_CURRENT_550_00_MA,   CHARGE_CURRENT_650_00_MA,	CHARGE_CURRENT_750_00_MA, CHARGE_CURRENT_850_00_MA,
+	CHARGE_CURRENT_950_00_MA,   CHARGE_CURRENT_1050_00_MA,	CHARGE_CURRENT_1150_00_MA, CHARGE_CURRENT_1250_00_MA
 };
 
 const u32 INPUT_CS_VTH[] = {
@@ -100,7 +63,7 @@ const u32 VCDT_HV_VTH[] = {
 	    BATTERY_VOLT_10_500000_V
 };
 
-static u32 charging_value_to_parameter(const u32 *parameter, const u32 array_size, const u32 val)
+u32 charging_value_to_parameter(const u32 *parameter, const u32 array_size, const u32 val)
 {
 	if (val < array_size)
 		return parameter[val];
@@ -108,7 +71,7 @@ static u32 charging_value_to_parameter(const u32 *parameter, const u32 array_siz
 	return parameter[0];
 }
 
-static u32 charging_parameter_to_value(const u32 *parameter, const u32 array_size, const u32 val)
+u32 charging_parameter_to_value(const u32 *parameter, const u32 array_size, const u32 val)
 {
 	u32 i;
 
@@ -117,6 +80,8 @@ static u32 charging_parameter_to_value(const u32 *parameter, const u32 array_siz
 			return i;
 
 	battery_log(BAT_LOG_CRTI, "NO register value match \r\n");
+	printk("[%s %d]----------------call  dump_stack--------------------\n\n\n\n\n",__FUNCTION__,__LINE__);
+	dump_stack();
 
 	return 0;
 }
@@ -160,24 +125,21 @@ static u32 charging_hw_init(void *data)
 	mt_set_gpio_mode(wireless_charger_gpio_number, 0);	/* 0:GPIO mode */
 	mt_set_gpio_dir(wireless_charger_gpio_number, 0);	/* 0: input, 1: output */
 #endif
-	battery_log(BAT_LOG_CRTI, "fan5405  charging_hw_init  line=%d\n", __LINE__);
+   
+	#if defined(HIGH_BATTERY_VOLTAGE_SUPPORT)
+	fan5405_reg_config_interface(0x06,0x77); // ISAFE = 1250mA, VSAFE = 4.34V
+	#else
+	fan5405_reg_config_interface(0x06,0x70);
+	#endif
 
-#if defined(HIGH_BATTERY_VOLTAGE_SUPPORT)
-	fan5405_reg_config_interface(0x06, 0x47); /*ISAFE = 1050mA, VSAFE = 4.34V*/
-#else
-	fan5405_reg_config_interface(0x06, 0x70);
-#endif
-
-	fan5405_reg_config_interface(0x00, 0xC0); /*kick chip watch dog*/
-	fan5405_reg_config_interface(0x01, 0xb8); /*TE=1, CE=0, HZ_MODE=0, OPA_MODE=0*/
+	fan5405_reg_config_interface(0x00, 0xC0);	/* kick chip watch dog */
+	fan5405_reg_config_interface(0x01, 0xb8);	/* TE=1, CE=0, HZ_MODE=0, OPA_MODE=0 */
 	fan5405_reg_config_interface(0x05, 0x03);
 	if (!charging_init_flag) {
-		fan5405_reg_config_interface(0x04, 0x19); /*97mA*/
+		fan5405_reg_config_interface(0x04, 0x1A);	/* 146mA */
 		charging_init_flag = KAL_TRUE;
 	}
-#ifdef CONFIG_ONTIM_DSM
-	fan5405_dsm_client = dsm_register_client(&fan5405_dsm_dev);
-#endif
+
 	return status;
 }
 
@@ -218,9 +180,17 @@ static u32 charging_set_cv_voltage(void *data)
 {
 	u32 status = STATUS_OK;
 	u16 register_value;
+	unsigned int cv_value = *(unsigned int *) (data);
 
+	// if (batt_cust_data.high_battery_voltage_support) {
+		// if (cv_value >= BATTERY_VOLT_04_300000_V)
+			// cv_value = 4304000;
+	// }
 	register_value =
-	    charging_parameter_to_value(VBAT_CV_VTH, GETARRAYNUM(VBAT_CV_VTH), *(u32 *) (data));
+	    charging_parameter_to_value(VBAT_CV_VTH, GETARRAYNUM(VBAT_CV_VTH), cv_value);
+
+	battery_log(BAT_LOG_FULL,"[%s %d] register_value = 0x%x cv_value = %d\n",__FUNCTION__,__LINE__,register_value,cv_value);
+
 	fan5405_set_oreg(register_value);
 
 	return status;
@@ -248,7 +218,7 @@ static u32 charging_set_current(void *data)
 	u32 status = STATUS_OK;
 	u32 set_chr_current;
 	u32 array_size;
-	u32 register_value;
+	u32 register_value = 0;
 	u32 current_value = *(u32 *) data;
 
 	if (current_value <= CHARGE_CURRENT_350_00_MA) {
@@ -257,13 +227,14 @@ static u32 charging_set_current(void *data)
 		fan5405_set_io_level(0);
 		array_size = GETARRAYNUM(CS_VTH);
 		set_chr_current = bmt_find_closest_level(CS_VTH, array_size, current_value);
-
-	battery_log(BAT_LOG_CRTI, "charging_set_current  set_chr_current=%d\n", set_chr_current);
-
 		register_value = charging_parameter_to_value(CS_VTH, array_size, set_chr_current);
-	battery_log(BAT_LOG_CRTI, "charging_set_current  register_value=%d\n", register_value);
+		if(register_value > 6)
+		{
+		    register_value = 6;
+		}
 		fan5405_set_iocharge(register_value);
 	}
+	battery_log(BAT_LOG_FULL,"[%s %d]current_value = %d register_value = 0x%x\n",__FUNCTION__,__LINE__,current_value,register_value);
 	return status;
 }
 
@@ -277,15 +248,13 @@ static u32 charging_set_input_current(void *data)
 
 	if (*(u32 *) data > CHARGE_CURRENT_500_00_MA) {
 		register_value = 0x3;
-	battery_log(BAT_LOG_CRTI, "charging_set_input_current  register_value=%d\n", register_value);
 	} else {
 		array_size = GETARRAYNUM(INPUT_CS_VTH);
 		set_chr_current = bmt_find_closest_level(INPUT_CS_VTH, array_size, *(u32 *) data);
-	battery_log(BAT_LOG_CRTI, "charging_set_input_current  set_chr_current=%d\n", set_chr_current);
 		register_value =
 		    charging_parameter_to_value(INPUT_CS_VTH, array_size, set_chr_current);
-	battery_log(BAT_LOG_CRTI, "charging_set_input_current  register_value=%d\n", register_value);
 	}
+	battery_log(BAT_LOG_FULL,"[%s %d]register_value = 0x%x\n",__FUNCTION__,__LINE__,register_value);
 
 	fan5405_set_input_charging_current(register_value);
 
@@ -313,40 +282,6 @@ static u32 charging_reset_watch_dog_timer(void *data)
 {
 	u32 status = STATUS_OK;
 
-#ifdef CONFIG_ONTIM_DSM
-	if (fan5405_dsm_client && (fan5405_get_chip_status() == 0x03)) {
-		u8 reg[8];
-		int i;
-
-		for (i = 0; i < 7; i++)
-			fan5405_read_interface(i, &reg[i], 0xFF, 0);
-
-		fan5405_read_interface(0x10, &reg[i], 0xFF, 0);
-		if ((fan5405_dsm_client) && dsm_client_ocuppy(fan5405_dsm_client)) {
-			int error = OMTIM_DSM_CHARGER_ERROR;
-
-			if ((fan5405_dsm_client->dump_buff) && (fan5405_dsm_client->buff_size)
-				&& (fan5405_dsm_client->buff_flag == OMTIM_DSM_BUFF_OK)) {
-				fan5405_dsm_client->used_size = sprintf(fan5405_dsm_client->dump_buff,
-					"Type=%d; ID=%d; error_id=%d;  Charger info:%s; ",
-					fan5405_dsm_client->client_type , fan5405_dsm_client->client_id, error,
-					fan5405_dsm_client->client_name);
-				for (i = 0; i < 7; i++)
-					fan5405_dsm_client->used_size += sprintf(fan5405_dsm_client->dump_buff
-					+ fan5405_dsm_client->used_size, "Reg[0x%x]=0x%x; ", i, reg[i]);
-
-				fan5405_dsm_client->used_size += sprintf(fan5405_dsm_client->dump_buff
-					+ fan5405_dsm_client->used_size, "Reg[0x10]=0x%x; ", reg[i]);
-				fan5405_dsm_client->used_size += sprintf(fan5405_dsm_client->dump_buff
-					+ fan5405_dsm_client->used_size, "\n");
-				dsm_client_notify(fan5405_dsm_client, error);
-			}
-		} else {
-			battery_log(BAT_LOG_CRTI, "%s: dsm ocuppy error!!!", __func__);
-		}
-	 }
-#endif
-
 	fan5405_set_tmr_rst(1);
 
 	return status;
@@ -365,6 +300,7 @@ static u32 charging_set_hv_threshold(void *data)
 	array_size = GETARRAYNUM(VCDT_HV_VTH);
 	set_hv_voltage = bmt_find_closest_level(VCDT_HV_VTH, array_size, voltage);
 	register_value = charging_parameter_to_value(VCDT_HV_VTH, array_size, set_hv_voltage);
+	battery_log(BAT_LOG_FULL,"[%s %d]register_value = 0x%x\n",__FUNCTION__,__LINE__,register_value);
 	pmic_set_register_value(PMIC_RG_VCDT_HV_VTH, register_value);
 	return status;
 }
@@ -387,7 +323,7 @@ static u32 charging_get_battery_status(void *data)
 {
 	unsigned int status = STATUS_OK;
 
-#if 1 /*defined(CONFIG_POWER_EXT) || defined(CONFIG_MTK_FPGA)*/
+#if 1 //defined(CONFIG_POWER_EXT) || defined(CONFIG_MTK_FPGA)
 	*(kal_bool *) (data) = 0;	/* battery exist */
 	battery_log(BAT_LOG_CRTI, "[charging_get_battery_status] battery exist for bring up.\n");
 #else
@@ -527,11 +463,11 @@ charging_hw_init, charging_dump_register, charging_enable, charging_set_cv_volta
 	    charging_get_power_source, charging_get_csdac_full_flag,
 	    charging_set_ta_current_pattern, charging_set_error_state};
 
-s32 fan5405_chr_control_interface(CHARGING_CTRL_CMD cmd, void *data)
+s32 chr_control_interface(CHARGING_CTRL_CMD cmd, void *data)
 {
 	s32 status;
 
-	if ((cmd < CHARGING_CMD_NUMBER) && (charging_func[cmd] != NULL))
+	if (cmd < CHARGING_CMD_NUMBER)
 		status = charging_func[cmd] (data);
 	else
 		return STATUS_UNSUPPORTED;

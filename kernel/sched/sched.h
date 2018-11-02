@@ -667,7 +667,6 @@ struct rq {
 #ifdef CONFIG_CPU_IDLE
 	/* Must be inspected within a rcu lock section */
 	struct cpuidle_state *idle_state;
-	int idle_state_idx;
 #endif
 };
 
@@ -1026,10 +1025,9 @@ static inline void finish_lock_switch(struct rq *rq, struct task_struct *prev)
 	 * After ->on_cpu is cleared, the task can be moved to a different CPU.
 	 * We must ensure this doesn't happen until the switch is completely
 	 * finished.
-	 *
-	 * Pairs with the control dependency and rmb in try_to_wake_up().
 	 */
-	smp_store_release(&prev->on_cpu, 0);
+	smp_wmb();
+	prev->on_cpu = 0;
 #endif
 #ifdef CONFIG_DEBUG_SPINLOCK
 	/* this is a valid case when another task releases the spinlock */
@@ -1228,17 +1226,6 @@ static inline struct cpuidle_state *idle_get_state(struct rq *rq)
 	WARN_ON(!rcu_read_lock_held());
 	return rq->idle_state;
 }
-
-static inline void idle_set_state_idx(struct rq *rq, int idle_state_idx)
-{
-	rq->idle_state_idx = idle_state_idx;
-}
-
-static inline int idle_get_state_idx(struct rq *rq)
-{
-	WARN_ON(!rcu_read_lock_held());
-	return rq->idle_state_idx;
-}
 #else
 static inline void idle_set_state(struct rq *rq,
 				  struct cpuidle_state *idle_state)
@@ -1248,15 +1235,6 @@ static inline void idle_set_state(struct rq *rq,
 static inline struct cpuidle_state *idle_get_state(struct rq *rq)
 {
 	return NULL;
-}
-
-static inline void idle_set_state_idx(struct rq *rq, int idle_state_idx)
-{
-}
-
-static inline int idle_get_state_idx(struct rq *rq)
-{
-	return -1;
 }
 #endif
 

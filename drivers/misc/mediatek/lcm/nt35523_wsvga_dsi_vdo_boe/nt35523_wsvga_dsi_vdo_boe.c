@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #include <linux/string.h>
 #include <linux/wait.h>
 #include <linux/platform_device.h>
@@ -191,7 +178,6 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->width = FRAME_WIDTH;
 	params->height = FRAME_HEIGHT;
 
-	params->density = 160;
 #if (LCM_DSI_CMD_MODE)
 	params->dsi.mode = CMD_MODE;
 	params->dsi.switch_mode = SYNC_PULSE_VDO_MODE;

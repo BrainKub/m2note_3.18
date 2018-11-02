@@ -305,6 +305,7 @@ static int vti6_rcv(struct sk_buff *skb)
 		}
 
 		XFRM_TUNNEL_SKB_CB(skb)->tunnel.ip6 = t;
+		skb->mark = be32_to_cpu(t->parms.i_key);
 
 		rcu_read_unlock();
 
@@ -324,8 +325,6 @@ static int vti6_rcv_cb(struct sk_buff *skb, int err)
 	struct pcpu_sw_netstats *tstats;
 	struct xfrm_state *x;
 	struct ip6_tnl *t = XFRM_TUNNEL_SKB_CB(skb)->tunnel.ip6;
-	u32 orig_mark = skb->mark;
-	int ret;
 
 	if (!t)
 		return 1;
@@ -342,11 +341,7 @@ static int vti6_rcv_cb(struct sk_buff *skb, int err)
 	x = xfrm_input_state(skb);
 	family = x->inner_mode->afinfo->family;
 
-	skb->mark = be32_to_cpu(t->parms.i_key);
-	ret = xfrm_policy_check(NULL, XFRM_POLICY_IN, skb, family);
-	skb->mark = orig_mark;
-
-	if (!ret)
+	if (!xfrm_policy_check(NULL, XFRM_POLICY_IN, skb, family))
 		return -EPERM;
 
 	skb_scrub_packet(skb, !net_eq(t->net, dev_net(skb->dev)));
@@ -416,7 +411,6 @@ vti6_xmit(struct sk_buff *skb, struct net_device *dev, struct flowi *fl)
 	struct net_device_stats *stats = &t->dev->stats;
 	struct dst_entry *dst = skb_dst(skb);
 	struct net_device *tdev;
-	int pkt_len = skb->len;
 	int err = -1;
 
 	if (!dst)
@@ -451,7 +445,7 @@ vti6_xmit(struct sk_buff *skb, struct net_device *dev, struct flowi *fl)
 		struct pcpu_sw_netstats *tstats = this_cpu_ptr(dev->tstats);
 
 		u64_stats_update_begin(&tstats->syncp);
-		tstats->tx_bytes += pkt_len;
+		tstats->tx_bytes += skb->len;
 		tstats->tx_packets++;
 		u64_stats_update_end(&tstats->syncp);
 	} else {
@@ -478,6 +472,7 @@ vti6_tnl_xmit(struct sk_buff *skb, struct net_device *dev)
 	int ret;
 
 	memset(&fl, 0, sizeof(fl));
+	skb->mark = be32_to_cpu(t->parms.o_key);
 
 	switch (skb->protocol) {
 	case htons(ETH_P_IPV6):
@@ -497,9 +492,6 @@ vti6_tnl_xmit(struct sk_buff *skb, struct net_device *dev)
 	default:
 		goto tx_err;
 	}
-
-	/* override mark with tunnel output key */
-	fl.flowi_mark = be32_to_cpu(t->parms.o_key);
 
 	ret = vti6_xmit(skb, dev, &fl);
 	if (ret < 0)
@@ -561,10 +553,9 @@ static int vti6_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
 		return 0;
 
 	if (type == NDISC_REDIRECT)
-		ip6_redirect(skb, net, skb->dev->ifindex, 0,
-			     sock_net_uid(net, NULL));
+		ip6_redirect(skb, net, skb->dev->ifindex, 0);
 	else
-		ip6_update_pmtu(skb, net, info, 0, 0, sock_net_uid(net, NULL));
+		ip6_update_pmtu(skb, net, info, 0, 0);
 	xfrm_state_put(x);
 
 	return 0;
@@ -647,10 +638,6 @@ vti6_parm_to_user(struct ip6_tnl_parm2 *u, const struct __ip6_tnl_parm *p)
 	u->link = p->link;
 	u->i_key = p->i_key;
 	u->o_key = p->o_key;
-	if (u->i_key)
-		u->i_flags |= GRE_KEY;
-	if (u->o_key)
-		u->o_flags |= GRE_KEY;
 	u->proto = p->proto;
 
 	memcpy(u->name, p->name, sizeof(u->name));

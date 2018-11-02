@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #ifndef _MTK_BTIF_EXP_H_
 #define _MTK_BTIF_EXP_H_
 
@@ -38,7 +25,6 @@ typedef enum _ENUM_BTIF_DBG_ID_ {
 	BTIF_DUMP_BTIF_REG = BTIF_CLR_LOG + 1,
 	BTIF_ENABLE_RT_LOG = BTIF_DUMP_BTIF_REG + 1,
 	BTIF_DISABLE_RT_LOG = BTIF_ENABLE_RT_LOG + 1,
-	BTIF_DUMP_BTIF_IRQ = BTIF_DISABLE_RT_LOG + 1,
 	BTIF_DBG_MAX,
 } ENUM_BTIF_DBG_ID;
 

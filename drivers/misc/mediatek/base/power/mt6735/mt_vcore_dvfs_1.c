@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #define pr_fmt(fmt)	"[VcoreFS] " fmt
 
 #include <linux/kernel.h>
@@ -174,7 +161,7 @@ static struct vcorefs_profile vcorefs_ctrl = {
 	.vcore_dvs		= 1,
 	.freq_dfs		= 1,
 	.ddr_dfs		= 1,
-	.log_mask		= 0xffff0000 | (1U << KIR_GPU) | (1U << KIR_MM) | (1U << KIR_PERF),
+	.log_mask		= 0xffff0000 | (1U << KIR_GPU),
 
 	.late_init_opp_done	= 0,
 	.init_opp_perf		= 0,
@@ -220,9 +207,6 @@ static struct kicker_profile kicker_table[] = {
 		.opp = OPP_OFF,
 	},
 	[KIR_USB] = {
-		.opp = OPP_OFF,
-	},
-	[KIR_PERF] = {
 		.opp = OPP_OFF,
 	},
 	[KIR_SYSFS] = {
@@ -445,13 +429,12 @@ static unsigned int find_min_opp(enum dvfs_kicker kicker)
 	unsigned int min = UINT_MAX;
 	int i;
 
-	vcorefs_crit_mask("[%d, %d, %d, %d, %d, %d, %d]\n",
+	vcorefs_crit_mask("[%d, %d, %d, %d, %d, %d]\n",
 				kicker_ctrl_table[KIR_GPU].opp,
 				kicker_ctrl_table[KIR_MM].opp,
 				kicker_ctrl_table[KIR_EMIBW].opp,
 				kicker_ctrl_table[KIR_SDIO].opp,
 				kicker_ctrl_table[KIR_USB].opp,
-				kicker_ctrl_table[KIR_PERF].opp,
 				kicker_ctrl_table[KIR_SYSFS].opp);
 
 	/* find the min opp from kicker table */
@@ -797,8 +780,8 @@ static void set_init_opp_index(struct vcorefs_profile *pwrctrl)
 
 static int late_init_to_lowpwr_opp(void)
 {
-	struct vcorefs_profile *pwrctrl = &vcorefs_ctrl;
-	struct kicker_profile *kicker_ctrl_table = kicker_table;
+        struct vcorefs_profile *pwrctrl = &vcorefs_ctrl;
+        struct kicker_profile *kicker_ctrl_table = kicker_table;
 
 	mutex_lock(&vcorefs_mutex);
 	if (!dram_can_support_fh()) {
@@ -953,7 +936,6 @@ static ssize_t vcore_debug_show(struct kobject *kobj, struct kobj_attribute *att
 	p += sprintf(p, "[KIR_EMIBW] opp: %d\n", kicker_ctrl_table[KIR_EMIBW].opp);
 	p += sprintf(p, "[KIR_SDIO ] opp: %d\n", kicker_ctrl_table[KIR_SDIO].opp);
 	p += sprintf(p, "[KIR_USB  ] opp: %d\n", kicker_ctrl_table[KIR_USB].opp);
-	p += sprintf(p, "[KIR_PERF ] opp: %d\n", kicker_ctrl_table[KIR_PERF].opp);
 	p += sprintf(p, "[KIR_SYSFS] opp: %d\n", kicker_ctrl_table[KIR_SYSFS].opp);
 	p += sprintf(p, "\n");
 
@@ -1013,8 +995,6 @@ static ssize_t vcore_debug_store(struct kobject *kobj, struct kobj_attribute *at
 		vcorefs_request_dvfs_opp(KIR_SDIO, val);
 	} else if (!strcmp(cmd, "KIR_USB")) {
 		vcorefs_request_dvfs_opp(KIR_USB, val);
-	} else if (!strcmp(cmd, "KIR_PERF")) {
-		vcorefs_request_dvfs_opp(KIR_PERF, val);
 	} else if (!strcmp(cmd, "KIR_SYSFS") && (val >= OPP_OFF && val < NUM_OPP)) {
 		if (is_vcorefs_can_work()) {
 			int r = vcorefs_request_dvfs_opp(KIR_SYSFS, val);

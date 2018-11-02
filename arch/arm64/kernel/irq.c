@@ -33,12 +33,12 @@ unsigned long irq_err_count;
 
 int arch_show_interrupts(struct seq_file *p, int prec)
 {
+#ifdef CONFIG_SMP
 	show_ipi_list(p, prec);
+#endif
 	seq_printf(p, "%*s: %10lu\n", prec, "Err", irq_err_count);
 	return 0;
 }
-
-void (*handle_arch_irq)(struct pt_regs *) = NULL;
 
 void __init set_handle_irq(void (*handle_irq)(struct pt_regs *))
 {
@@ -301,7 +301,7 @@ void update_affinity_settings(struct irq_desc *desc, const struct cpumask *new_a
 
 #ifdef CONFIG_MTK_IRQ_NEW_DESIGN_DEBUG
 	/* verify the consistency of IRQ setting after updating */
-	WARN_ON(!check_consistency_of_irq_settings(desc));
+	BUG_ON(!check_consistency_of_irq_settings(desc));
 #endif
 }
 #endif

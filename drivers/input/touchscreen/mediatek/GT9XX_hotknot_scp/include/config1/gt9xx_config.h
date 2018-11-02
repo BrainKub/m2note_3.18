@@ -4,6 +4,15 @@
 /*STEP_1(REQUIRED):Change config table.*/
 /*TODO: puts the config info corresponded to your TP here, the following is just
 a sample config, send this config should cause the chip cannot work normally*/
+
+
+/*----------------------------------------------------------
+note:     FW  update
+Lide panel use GROUP1;
+BLD panel use GROUP2;
+Boyi panel use GROUP3;
+----------------------------------------------------------*/
+
 #define CTP_CFG_GROUP1 {\
 0x4A , 0x38 , 0x04 , 0x80 , 0x07 , 0x0A , 0x45 , 0x00 , \
 0x00 , 0xC8 , 0x28 , 0x05 , 0x50 , 0x28 , 0x0F , 0x05 , \

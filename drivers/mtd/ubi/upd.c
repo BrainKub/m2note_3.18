@@ -142,7 +142,7 @@ int ubi_start_update(struct ubi_device *ubi, struct ubi_volume *vol,
 		return err;
 
 	/* Before updating - wipe out the volume */
-#ifdef CONFIG_MTK_TLC_NAND_SUPPORT
+#ifdef CONFIG_MTK_SLC_BUFFER_SUPPORT
 	ubi_wipe_mtbl_record(ubi, vol->vol_id);
 #endif
 	for (i = 0; i < vol->reserved_pebs; i++) {
@@ -151,11 +151,11 @@ int ubi_start_update(struct ubi_device *ubi, struct ubi_volume *vol,
 			return err;
 	}
 
-	err = ubi_wl_flush(ubi, UBI_ALL, UBI_ALL);
-	if (err)
-		return err;
-
 	if (bytes == 0) {
+		err = ubi_wl_flush(ubi, UBI_ALL, UBI_ALL);
+		if (err)
+			return err;
+
 		err = clear_update_marker(ubi, vol, 0);
 		if (err)
 			return err;
@@ -196,7 +196,7 @@ int ubi_start_leb_change(struct ubi_device *ubi, struct ubi_volume *vol,
 	vol->changing_leb = 1;
 	vol->ch_lnum = req->lnum;
 
-	vol->upd_buf = vmalloc(ALIGN((int)req->bytes, ubi->min_io_size));
+	vol->upd_buf = vmalloc(req->bytes);
 	if (!vol->upd_buf)
 		return -ENOMEM;
 

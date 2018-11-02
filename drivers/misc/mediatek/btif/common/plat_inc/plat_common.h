@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #ifndef __HAL_PUB_H_
 #define __HAL_PUB_H_
 
@@ -52,7 +39,7 @@ typedef irq_handler_t mtk_btif_irq_handler;
 #define MTK_BTIF_ENABLE_CLK_CTL 1
 #define MTK_BTIF_ENABLE_CLK_REF_COUNTER 1
 
-#define DBG_LOG_STR_SIZE 256
+#define DBG_LOG_STR_SIZE 384
 
 /*Log defination*/
 static int hal_log_print(const char *str, ...)
@@ -182,8 +169,9 @@ typedef enum _ENUM_BTIF_REG_ID_ {
 	REG_WAT_TIME = 9,	/*Async Wait Time Register */
 	REG_HANDSHAKE = 10,	/*New HandShake Mode Register */
 	REG_SLP_WAK = 11,	/*Sleep Wakeup Reigster */
-	REG_ALL = 12,	/*all  registers */
-	REG_IRQ = 13,	/*IRQ  registers */
+	REG_BTIF_ALL = 12,	/*all btif controller's registers */
+	REG_TX_DMA_ALL = 13,
+	REG_RX_DMA_ALL = 14,
 	REG_MAX
 } ENUM_BTIF_REG_ID;
 

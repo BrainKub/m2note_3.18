@@ -233,7 +233,6 @@ struct ext4_io_submit {
 #define	EXT4_MAX_BLOCK_SIZE		65536
 #define EXT4_MIN_BLOCK_LOG_SIZE		10
 #define EXT4_MAX_BLOCK_LOG_SIZE		16
-#define EXT4_MAX_CLUSTER_LOG_SIZE	30
 #ifdef __KERNEL__
 # define EXT4_BLOCK_SIZE(s)		((s)->s_blocksize)
 #else
@@ -428,11 +427,11 @@ enum {
 	EXT4_INODE_APPEND	= 5,	/* writes to file may only append */
 	EXT4_INODE_NODUMP	= 6,	/* do not dump file */
 	EXT4_INODE_NOATIME	= 7,	/* do not update atime */
-/* Reserved for compression usage, co-opted for encryption usage */
+/* Reserved for compression usage... */
 	EXT4_INODE_DIRTY	= 8,
 	EXT4_INODE_COMPRBLK	= 9,	/* One or more compressed clusters */
 	EXT4_INODE_NOCOMPR	= 10,	/* Don't compress */
-	EXT4_INODE_ENCRYPT	= 11,	/* Encrypted */
+	EXT4_INODE_ENCRYPT	= 11,	/* Encrypted file */
 /* End compression flags --- maybe not all used */
 	EXT4_INODE_INDEX	= 12,	/* hash-indexed directory */
 	EXT4_INODE_IMAGIC	= 13,	/* AFS directory */
@@ -823,29 +822,6 @@ do {									       \
 #endif /* defined(__KERNEL__) || defined(__linux__) */
 
 #include "extents_status.h"
-
-/*
- * Lock subclasses for i_data_sem in the ext4_inode_info structure.
- *
- * These are needed to avoid lockdep false positives when we need to
- * allocate blocks to the quota inode during ext4_map_blocks(), while
- * holding i_data_sem for a normal (non-quota) inode.  Since we don't
- * do quota tracking for the quota inode, this avoids deadlock (as
- * well as infinite recursion, since it isn't turtles all the way
- * down...)
- *
- *  I_DATA_SEM_NORMAL - Used for most inodes
- *  I_DATA_SEM_OTHER  - Used by move_inode.c for the second normal inode
- *			  where the second inode has larger inode number
- *			  than the first
- *  I_DATA_SEM_QUOTA  - Used for quota inodes only
- */
-enum {
-	I_DATA_SEM_NORMAL = 0,
-	I_DATA_SEM_OTHER,
-	I_DATA_SEM_QUOTA,
-};
-
 
 /*
  * fourth extended file system inode data in memory
@@ -2084,16 +2060,14 @@ extern struct kmem_cache *ext4_crypt_info_cachep;
 bool ext4_valid_contents_enc_mode(uint32_t mode);
 uint32_t ext4_validate_encryption_key_size(uint32_t mode, uint32_t size);
 extern struct workqueue_struct *ext4_read_workqueue;
-struct ext4_crypto_ctx *ext4_get_crypto_ctx(struct inode *inode,
-					    gfp_t gfp_flags);
+struct ext4_crypto_ctx *ext4_get_crypto_ctx(struct inode *inode);
 void ext4_release_crypto_ctx(struct ext4_crypto_ctx *ctx);
 void ext4_restore_control_page(struct page *data_page);
 struct page *ext4_encrypt(struct inode *inode,
-			  struct page *plaintext_page,
-			  gfp_t gfp_flags);
-int ext4_decrypt(struct page *page);
+			  struct page *plaintext_page);
+int ext4_decrypt(struct ext4_crypto_ctx *ctx, struct page *page);
+int ext4_decrypt_one(struct inode *inode, struct page *page);
 int ext4_encrypted_zeroout(struct inode *inode, struct ext4_extent *ex);
-extern const struct dentry_operations ext4_encrypted_d_ops;
 
 #ifdef CONFIG_EXT4_FS_ENCRYPTION
 int ext4_init_crypto(void);
@@ -2156,11 +2130,23 @@ static inline void ext4_fname_free_filename(struct ext4_filename *fname) { }
 /* crypto_key.c */
 void ext4_free_crypt_info(struct ext4_crypt_info *ci);
 void ext4_free_encryption_info(struct inode *inode, struct ext4_crypt_info *ci);
+int _ext4_get_encryption_info(struct inode *inode);
 
 #ifdef CONFIG_EXT4_FS_ENCRYPTION
 int ext4_has_encryption_key(struct inode *inode);
 
-int ext4_get_encryption_info(struct inode *inode);
+static inline int ext4_get_encryption_info(struct inode *inode)
+{
+	struct ext4_crypt_info *ci = EXT4_I(inode)->i_crypt_info;
+
+	if (!ci ||
+	    (ci->ci_keyring_key &&
+	     (ci->ci_keyring_key->flags & ((1 << KEY_FLAG_INVALIDATED) |
+					   (1 << KEY_FLAG_REVOKED) |
+					   (1 << KEY_FLAG_DEAD)))))
+		return _ext4_get_encryption_info(inode);
+	return 0;
+}
 
 static inline struct ext4_crypt_info *ext4_encryption_info(struct inode *inode)
 {

@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 /*----------------------------------------------------------------------------*/
 #ifdef HDMI_MT8193_SUPPORT
 
@@ -38,6 +25,7 @@
 #include <linux/byteorder/generic.h>
 #include <linux/interrupt.h>
 #include <linux/time.h>
+#include <linux/rtpm_prio.h>
 #include <linux/dma-mapping.h>
 #include <linux/syscalls.h>
 #include <linux/reboot.h>
@@ -100,7 +88,6 @@ size_t mt8193_rxcecmode = CEC_NORMAL_MODE;
 HDMI_CTRL_STATE_T e_hdmi_ctrl_state = HDMI_STATE_IDLE;
 HDCP_CTRL_STATE_T e_hdcp_ctrl_state = HDCP_RECEIVER_NOT_READY;
 unsigned int mt8193_hotplugstate = HDMI_STATE_HOT_PLUG_OUT;
-unsigned int mt8193_edidstate = 0;
 
 #if defined(CONFIG_HAS_EARLYSUSPEND)
 size_t mt8193_hdmiearlysuspend = 1;
@@ -176,7 +163,7 @@ static void mt8193_get_params(struct HDMI_PARAMS *params)
 {
 	enum HDMI_VIDEO_RESOLUTION input_resolution;
 
-	input_resolution = params->init_config.vformat - 2;
+	input_resolution = params->init_config.vformat;
 	memset(params, 0, sizeof(struct HDMI_PARAMS));
 
 	switch (input_resolution) {
@@ -256,7 +243,6 @@ static void mt8193_get_params(struct HDMI_PARAMS *params)
 	params->scaling_factor = 0;
 	params->cabletype = 0;
 	params->HDCPSupported = 0;
-	params->is_force_awake = 1;
 
 }
 
@@ -295,7 +281,7 @@ static void mt8193_resume(void)
 /*----------------------------------------------------------------------------*/
 
 static int mt8193_video_config(enum HDMI_VIDEO_RESOLUTION vformat, enum HDMI_VIDEO_INPUT_FORMAT vin,
-			       int vout)
+			       enum HDMI_VIDEO_OUTPUT_FORMAT vout)
 {
 	HDMI_DEF_LOG("[hdmi]mt8193_video_config:%d\n", vformat);
 
@@ -496,9 +482,6 @@ void mt8193_dump(void)
 enum HDMI_STATE mt8193_get_state(void)
 {
 	MT8193_DRV_FUNC();
-
-	if (mt8193_edidstate == 0)
-		return HDMI_STATE_NO_DEVICE;
 
 	if (mt8193_hotplugstate == HDMI_STATE_HOT_PLUGIN_AND_POWER_ON)
 		return HDMI_STATE_ACTIVE;
@@ -822,10 +805,9 @@ static void vNotifyAppHdmiState(unsigned char u1hdmistate)
 	HDMI_EDID_T get_info;
 
 	mt8193_AppGetEdidInfo(&get_info);
-#if 0
+
 	if (mt8193_hdmi_factory_callback != NULL)
 		mt8193_hdmi_factory_callback(HDMI_STATE_NO_DEVICE);
-#endif
 
 	switch (u1hdmistate) {
 	case HDMI_PLUG_OUT:
@@ -1086,7 +1068,7 @@ void mt8193_nlh_impl(void)
 
 static int hdmi_timer_kthread(void *data)
 {
-	struct sched_param param = {.sched_priority = 91};
+	struct sched_param param = {.sched_priority = RTPM_PRIO_CAMERA_PREVIEW };
 
 	sched_setscheduler(current, SCHED_RR, &param);
 
@@ -1103,7 +1085,7 @@ static int hdmi_timer_kthread(void *data)
 
 static int cec_timer_kthread(void *data)
 {
-	struct sched_param param = {.sched_priority = 91};
+	struct sched_param param = {.sched_priority = RTPM_PRIO_CAMERA_PREVIEW };
 
 	sched_setscheduler(current, SCHED_RR, &param);
 
@@ -1120,7 +1102,7 @@ static int cec_timer_kthread(void *data)
 
 static int mt8193_nlh_kthread(void *data)
 {
-	struct sched_param param = {.sched_priority = 94};
+	struct sched_param param = {.sched_priority = RTPM_PRIO_SCRN_UPDATE };
 
 	sched_setscheduler(current, SCHED_RR, &param);
 

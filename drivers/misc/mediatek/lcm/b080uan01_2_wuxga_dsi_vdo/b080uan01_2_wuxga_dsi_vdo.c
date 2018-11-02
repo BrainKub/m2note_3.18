@@ -1,15 +1,3 @@
-/*
-* Copyright (C) 2016 MediaTek Inc.
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License version 2 as
-* published by the Free Software Foundation.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-* See http://www.gnu.org/licenses/gpl-2.0.html for more details.
-*/
 #ifndef BUILD_LK
 #include <linux/string.h>
 #include <linux/gpio.h>
@@ -114,7 +102,6 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->height = FRAME_HEIGHT;
 	params->dsi.mode   = SYNC_EVENT_VDO_MODE;
 
-	params->density = 280;
 	/* DSI */
 	/* Command mode setting */
 	params->dsi.LANE_NUM = LCM_FOUR_LANE;

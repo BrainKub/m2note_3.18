@@ -1,23 +1,9 @@
 /*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
-/*
  * @file    mt_clk_buf_ctl.c
  * @brief   Driver for RF clock buffer control
  */
 
 #define __MT_CLK_BUF_CTL_C__
-#define pr_fmt(fmt)		"[Power/clkbuf]" fmt
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -74,7 +60,6 @@ static CLK_BUF_SWCTRL_STATUS_T clk_buf_swctrl[CLKBUF_NUM] = {
 #define BSI_CW_DEFAULT		0x01E8F
 
 #define CLK_BUF_BSI_PAD_NUM	5
-#define clkbuf_debug(fmt, args...)	pr_debug(fmt, ##args)
 static unsigned int clk_buf_spm_cfg[CLK_BUF_BSI_PAD_NUM] = {
 	0x00000000, /* BSI_EN_SR */
 	0x00000000, /* BSI_CLK_SR */
@@ -150,28 +135,6 @@ static void clk_buf_Send_BSI_CW(CLK_BUF_SWCTRL_STATUS_T *status)
 }
 
 
-static void spm_clk_buf_ctrl_twice(CLK_BUF_SWCTRL_STATUS_T *status)
-{
-	u32 spm_val;
-	int i;
-
-	clkbuf_debug("%s: enter", __func__);
-	spm_ap_mdsrc_req(1);
-	spm_val = spm_read(SPM_SLEEP_MDBSI_CON) & ~0x7;
-	for (i = 1; i < CLKBUF_NUM; i++)
-		spm_val |= status[i] << (i-1);
-	spm_write(SPM_SLEEP_MDBSI_CON, spm_val);
-	udelay(2);
-	spm_ap_mdsrc_req(0);
-	udelay(2);
-	spm_ap_mdsrc_req(1);
-	spm_write(SPM_SLEEP_MDBSI_CON, spm_val);
-	udelay(2);
-	spm_ap_mdsrc_req(0);
-	clkbuf_debug("%s: leave", __func__);
-}
-
-
 static void spm_clk_buf_ctrl(CLK_BUF_SWCTRL_STATUS_T *status)
 {
 	u32 spm_val;
@@ -229,18 +192,15 @@ bool clk_buf_ctrl(enum clk_buf_id id, bool onoff)
 
 	clk_buf_swctrl[id] = onoff;
 	if ((spm_read(SPM_PWR_STATUS) & SPM_PWR_STATUS_MD) && (spm_read(SPM_PWR_STATUS_2ND) & SPM_PWR_STATUS_MD))
-		if (id == CLK_BUF_CONN)
-			spm_clk_buf_ctrl_twice(clk_buf_swctrl);
-		else
-			spm_clk_buf_ctrl(clk_buf_swctrl);
+		spm_clk_buf_ctrl(clk_buf_swctrl);
 	else
-		clk_buf_Send_BSI_CW(clk_buf_swctrl);
+
+	clk_buf_Send_BSI_CW(clk_buf_swctrl);
 
 	mutex_unlock(&clk_buf_ctrl_lock);
 
 	return true;
 }
-EXPORT_SYMBOL(clk_buf_ctrl);
 
 
 void clk_buf_get_swctrl_status(CLK_BUF_SWCTRL_STATUS_T *status)
@@ -257,7 +217,7 @@ static ssize_t clk_buf_ctrl_store(struct kobject *kobj, struct kobj_attribute *a
 	u32 clk_buf_en[CLKBUF_NUM], i;
 	char cmd[32];
 
-	if (sscanf(buf, "%31s %x %x %x %x", cmd, &clk_buf_en[0], &clk_buf_en[1], &clk_buf_en[2], &clk_buf_en[3]) != 5)
+	if (sscanf(buf, "%s %x %x %x %x", cmd, &clk_buf_en[0], &clk_buf_en[1], &clk_buf_en[2], &clk_buf_en[3]) != 5)
 		return -EPERM;
 
 	for (i = 0; i < CLKBUF_NUM; i++)

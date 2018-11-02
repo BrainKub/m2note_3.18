@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #ifndef _MT_VCORE_DVFS_1_
 #define _MT_VCORE_DVFS_1_
 
@@ -53,12 +40,11 @@ enum dvfs_kicker {
 	KIR_EMIBW,		/* 2 */
 	KIR_SDIO,		/* 3 */
 	KIR_USB,		/* 4 */
-	KIR_PERF,		/* 5 */
-	KIR_SYSFS,		/* 6 */
-	NUM_KICKER,		/* 7 */
+	KIR_SYSFS,		/* 5 */
+	NUM_KICKER,		/* 6 */
 	/* internal kicker */
-	KIR_SDIO_AUTOK,		/* 8 */
-	KIR_LATE_INIT		/* 9 */
+	KIR_SDIO_AUTOK,		/* 7 */
+	KIR_LATE_INIT		/* 8 */
 };
 
 enum dvfs_opp {

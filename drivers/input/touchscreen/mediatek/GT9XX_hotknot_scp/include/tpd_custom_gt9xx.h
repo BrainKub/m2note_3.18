@@ -20,6 +20,7 @@
 #include <linux/byteorder/generic.h>
 #include <linux/interrupt.h>
 #include <linux/time.h>
+#include <linux/rtpm_prio.h>
 #include <linux/proc_fs.h>
 #include <asm/uaccess.h>
 #include "mt_boot_common.h"
@@ -28,14 +29,15 @@
 
 /* Pre-defined definition */
 
-#define TPD_KEY_COUNT   4
-#define key_1           {60, 850}
-#define key_2           {180, 850}
-#define key_3           {300, 850}
-#define key_4           {420, 850}
+#define TPD_KEY_COUNT   3
+#define key_1           180, 1970
+#define key_2           540, 1970
+#define key_3           900, 1970
+//#define key_4           420, 1970
 
-#define TPD_KEYS        {KEY_BACK, KEY_HOME, KEY_MENU, KEY_SEARCH}
-#define TPD_KEYS_DIM    { {key_1, 50, 30}, {key_2, 50, 30}, {key_3, 50, 30}, {key_4, 50, 30} }
+#define TPD_KEYS        {KEY_MENU, KEY_HOMEPAGE, KEY_BACK}
+#define TPD_KEYS_DIM    { {key_1, 50, 30}, {key_2, 50, 30}, {key_3, 50, 30} }
+#define GTP_KEY_MAP_ARRAY {{key_1},{key_2},{key_3}}
 
 #define TOUCH_FILTER 1
 #if TOUCH_FILTER
@@ -95,12 +97,23 @@ extern unsigned char gtp_default_FW_fl[];
 
 #define CONFIG_OF_TOUCH
 /***************************PART1:ON/OFF define*******************************/
-#define GTP_HAVE_TOUCH_KEY    0
+#define GTP_HAVE_TOUCH_KEY    1
 
 #define GTP_COMPATIBLE_MODE   1	/* compatible with GT9XXF*/
 #define GTP_ESD_PROTECT       0	/* esd protection with a cycle of 2 seconds*/
 /*#define GUP_USE_HEADER_FILE   0*/
 /*#define GTP_FW_DOWNLOAD       0  */     /*update FW to TP SRAM*/
+
+
+
+
+/*--------------------------------*/
+
+#define TPD_HAVE_BUTTON 1
+#define GT_TP_SHOW_FW_STATUS	// show FW version
+//#define CONFIG_GTP_DRIVER_SEND_CFG    // auto update FW  it is define in deconfig file
+/*--------------------------------*/
+
 
 #define GTP_CONFIG_MIN_LENGTH       186
 #define GTP_CONFIG_MAX_LENGTH       240

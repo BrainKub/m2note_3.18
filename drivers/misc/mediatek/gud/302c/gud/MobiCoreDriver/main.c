@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 TRUSTONIC LIMITED
+ * Copyright (c) 2013-2015 TRUSTONIC LIMITED
  * All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -110,12 +110,12 @@ static struct mc_instance *get_instance(struct file *file)
 	return (struct mc_instance *)(file->private_data);
 }
 
+extern struct mc_mmu_table *find_mmu_table(unsigned int handle);
 uint32_t mc_get_new_handle(void)
 {
 	uint32_t handle;
 	struct mc_buffer *buffer;
 	struct mc_mmu_table *table;
-
 
 	mutex_lock(&ctx.cont_bufs_lock);
 retry:
@@ -134,10 +134,10 @@ retry:
 			goto retry;
 	}
 
-	/* here we assume table_lock is already taken. */
+	// here we assume table_lock is already taken.
 	table = find_mmu_table(handle);
 	if (table != NULL)
-		goto retry;
+                goto retry;
 
 	mutex_unlock(&ctx.cont_bufs_lock);
 
@@ -147,9 +147,8 @@ retry:
 /* Clears the reserved bit of each page and frees the pages */
 static inline void free_continguous_pages(void *addr, unsigned int order)
 {
-	struct page *page = virt_to_page(addr);
 	int i;
-
+	struct page *page = virt_to_page(addr);
 	for (i = 0; i < (1<<order); i++) {
 		MCDRV_DBG_VERBOSE(mcd, "free page at 0x%p", page);
 		clear_bit(PG_reserved, &page->flags);
@@ -349,26 +348,24 @@ found_buffer:
 		goto err;
 	}
 	mutex_unlock(&ctx.cont_bufs_lock);
-	/*
-	 * Only unmap if the request is coming from the user space and
-	 * it hasn't already been unmapped
-	 */
+	/* Only unmap if the request is coming from the user space and
+	 * it hasn't already been unmapped */
 	if (!unlock && buffer->uaddr != NULL) {
 #ifndef MC_VM_UNMAP
 		/* do_munmap must be done with mm->mmap_sem taken */
 		down_write(&mm->mmap_sem);
-		ret = do_munmap(mm, (unsigned long)buffer->uaddr, buffer->len);
+		ret = do_munmap(mm,
+				(long unsigned int)buffer->uaddr,
+				buffer->len);
 		up_write(&mm->mmap_sem);
 
 #else
-		ret = vm_munmap((unsigned long)buffer->uaddr, buffer->len);
+		ret = vm_munmap((long unsigned int)buffer->uaddr, buffer->len);
 #endif
 		if (ret < 0) {
-			/*
-			 * Something is not right if we end up here, better not
+			/* Something is not right if we end up here, better not
 			 * clean the buffer so we just leak memory instead of
-			 * creating security issues
-			 */
+			 * creating security issues */
 			MCDRV_DBG_ERROR(mcd, "Memory can't be unmapped");
 			return -EINVAL;
 		}
@@ -457,10 +454,7 @@ int mc_get_buffer(struct mc_instance *instance,
 	}
 
 	phys = virt_to_phys(addr);
-	/* add table_lock because mc_get_new_handle() calls find_mmu_table() */
-	mutex_lock(&mem_ctx.table_lock);
 	cbuffer->handle = mc_get_new_handle();
-	mutex_unlock(&mem_ctx.table_lock);
 	cbuffer->phys = phys;
 	cbuffer->addr = addr;
 	cbuffer->order = order;
@@ -528,24 +522,22 @@ unlock:
 
 static phys_addr_t get_mci_base_phys(unsigned int len)
 {
-	unsigned int order = get_order(len);
-
-	if (ctx.mci_base.phys)
+	if (ctx.mci_base.phys) {
 		return ctx.mci_base.phys;
-
-	ctx.mcp = NULL;
-	ctx.mci_base.order = order;
-	ctx.mci_base.addr =
-		(void *)__get_free_pages(GFP_USER | __GFP_ZERO, order);
-	ctx.mci_base.len = (1 << order) * PAGE_SIZE;
-	if (!ctx.mci_base.addr) {
-		MCDRV_DBG_WARN(mcd, "get_free_pages failed");
-		memset(&ctx.mci_base, 0, sizeof(ctx.mci_base));
-		return 0;
+	} else {
+		unsigned int order = get_order(len);
+		ctx.mcp = NULL;
+		ctx.mci_base.order = order;
+		ctx.mci_base.addr =
+			(void *)__get_free_pages(GFP_USER | __GFP_ZERO, order);
+		if (ctx.mci_base.addr == NULL) {
+			MCDRV_DBG_WARN(mcd, "get_free_pages failed");
+			memset(&ctx.mci_base, 0, sizeof(ctx.mci_base));
+			return 0;
+		}
+		ctx.mci_base.phys = virt_to_phys(ctx.mci_base.addr);
+		return ctx.mci_base.phys;
 	}
-
-	ctx.mci_base.phys = virt_to_phys(ctx.mci_base.addr);
-	return ctx.mci_base.phys;
 }
 
 /*
@@ -629,7 +621,8 @@ int mc_register_wsm_mmu(struct mc_instance *instance,
 	}
 
 	/* This array is used to free mmu tables in case of any error */
-	handles = kcalloc(nb_of_1mb_section, sizeof(unsigned int), GFP_KERNEL);
+	handles = kmalloc(sizeof(unsigned int)*nb_of_1mb_section,
+			  GFP_KERNEL | __GFP_ZERO);
 	if (handles == NULL) {
 		MCDRV_DBG_ERROR(mcd, "auxiliary handles array alloc. failed");
 		ret = -ENOMEM;
@@ -854,10 +847,8 @@ found:
 		ret = (int)remap_pfn_range(vmarea, vmarea->vm_start,
 				page_to_pfn(virt_to_page(buffer->addr)),
 				buffer->len, vmarea->vm_page_prot);
-		/*
-		 * If the remap failed then don't mark this buffer as marked
-		 * since the unmaping will also fail
-		 */
+		/* If the remap failed then don't mark this buffer as marked
+		 * since the unmaping will also fail */
 		if (ret)
 			buffer->uaddr = NULL;
 		mutex_unlock(&ctx.cont_bufs_lock);
@@ -868,17 +859,12 @@ found:
 		if (!ctx.mci_base.addr)
 			return -EFAULT;
 
-		if (len != ctx.mci_base.len)
-			return -EINVAL;
-
 		vmarea->vm_flags |= VM_IO;
-		/*
-		 * Convert kernel address to user address. Kernel address begins
+		/* Convert kernel address to user address. Kernel address begins
 		 * at PAGE_OFFSET, user address range is below PAGE_OFFSET.
 		 * Remapping the area is always done, so multiple mappings
 		 * of one region are possible. Now remap kernel address
-		 * space into user space
-		 */
+		 * space into user space */
 		ret = (int)remap_pfn_range(vmarea, vmarea->vm_start,
 				page_to_pfn(virt_to_page(ctx.mci_base.addr)),
 				len, vmarea->vm_page_prot);
@@ -892,7 +878,6 @@ found:
 static inline int ioctl_check_pointer(unsigned int cmd, int __user *uarg)
 {
 	int err = 0;
-
 	if (_IOC_DIR(cmd) & _IOC_READ)
 		err = !access_ok(VERIFY_WRITE, uarg, _IOC_SIZE(cmd));
 	else if (_IOC_DIR(cmd) & _IOC_WRITE)
@@ -929,20 +914,17 @@ static long mc_fd_user_ioctl(struct file *file, unsigned int cmd,
 		ret = mc_free_buffer(instance, (uint32_t)arg);
 		break;
 
-	/*
-	 * 32/64 bit interface compatibility notice:
+	/* 32/64 bit interface compatiblity notice:
 	 * mc_ioctl_reg_wsm has been defined with the buffer parameter
 	 * as void* which means that the size and layout of the structure
 	 * are different between 32 and 64 bit variants.
 	 * However our 64 bit Linux driver must be able to service both
 	 * 32 and 64 bit clients so we have to allow both IOCTLs. Though
 	 * we have a bit of copy paste code we provide maximum backwards
-	 * compatibility
-	 */
+	 * compatiblity */
 	case MC_IO_REG_WSM:{
 		struct mc_ioctl_reg_wsm reg;
 		phys_addr_t phys = 0;
-
 		if (copy_from_user(&reg, uarg, sizeof(reg)))
 			return -EFAULT;
 
@@ -962,7 +944,6 @@ static long mc_fd_user_ioctl(struct file *file, unsigned int cmd,
 	case MC_COMPAT_REG_WSM:{
 		struct mc_compat_ioctl_reg_wsm reg;
 		phys_addr_t phys = 0;
-
 		if (copy_from_user(&reg, uarg, sizeof(reg)))
 			return -EFAULT;
 
@@ -993,7 +974,6 @@ static long mc_fd_user_ioctl(struct file *file, unsigned int cmd,
 	case MC_IO_MAP_WSM:{
 		struct mc_ioctl_map map;
 		struct mc_buffer *buffer = 0;
-
 		if (copy_from_user(&map, uarg, sizeof(map)))
 			return -EFAULT;
 
@@ -1002,11 +982,9 @@ static long mc_fd_user_ioctl(struct file *file, unsigned int cmd,
 			return -EFAULT;
 
 		map.handle = buffer->handle;
-		/*
-		 * Trick: to keep the same interface with the user space, store
-		 * the handle in the physical address.
-		 * It is given back with the offset when mmap() is called.
-		 */
+		/* Trick: to keep the same interface with the user space, store
+		   the handle in the physical address.
+		   It is given back with the offset when mmap() is called. */
 		map.phys_addr = buffer->handle << PAGE_SHIFT;
 		map.reused = 0;
 		if (copy_to_user(uarg, &map, sizeof(map)))
@@ -1050,7 +1028,6 @@ static long mc_fd_admin_ioctl(struct file *file, unsigned int cmd,
 	switch (cmd) {
 	case MC_IO_INIT: {
 		struct mc_ioctl_init init;
-
 		ctx.mcp = NULL;
 		if (!ctx.mci_base.phys) {
 			MCDRV_DBG_ERROR(mcd,
@@ -1067,7 +1044,6 @@ static long mc_fd_admin_ioctl(struct file *file, unsigned int cmd,
 	}
 	case MC_IO_INFO: {
 		struct mc_ioctl_info info;
-
 		if (copy_from_user(&info, uarg, sizeof(info)))
 			return -EFAULT;
 
@@ -1101,7 +1077,6 @@ static long mc_fd_admin_ioctl(struct file *file, unsigned int cmd,
 	case MC_IO_RESOLVE_WSM: {
 		phys_addr_t phys;
 		struct mc_ioctl_resolv_wsm wsm;
-
 		if (copy_from_user(&wsm, uarg, sizeof(wsm)))
 			return -EFAULT;
 		phys = mc_find_wsm_mmu(instance, wsm.handle, wsm.fd);
@@ -1118,7 +1093,6 @@ static long mc_fd_admin_ioctl(struct file *file, unsigned int cmd,
 		struct mc_ioctl_resolv_cont_wsm cont_wsm;
 		phys_addr_t phys = 0;
 		uint32_t len = 0;
-
 		if (copy_from_user(&cont_wsm, uarg, sizeof(cont_wsm)))
 			return -EFAULT;
 		ret = mc_find_cont_wsm(instance, cont_wsm.handle, cont_wsm.fd,
@@ -1134,7 +1108,6 @@ static long mc_fd_admin_ioctl(struct file *file, unsigned int cmd,
 	case MC_IO_MAP_MCI:{
 		struct mc_ioctl_map map;
 		phys_addr_t phys_addr;
-
 		if (copy_from_user(&map, uarg, sizeof(map)))
 			return -EFAULT;
 
@@ -1325,12 +1298,10 @@ int mc_release_instance(struct mc_instance *instance)
 
 	/* Check if some buffers are orphaned. */
 	list_for_each_entry_safe(buffer, tmp, &ctx.cont_bufs, list) {
-		/*
-		 * It's safe here to only call free_buffer() without unmapping
+		/* It's safe here to only call free_buffer() without unmapping
 		 * because mmap() takes a refcount to the file's fd so only
 		 * time we end up here is when everything has been unmapped or
-		 * the process called exit()
-		 */
+		 * the process called exit() */
 		if (buffer->instance == instance) {
 			buffer->instance = NULL;
 			free_buffer(buffer);
@@ -1549,15 +1520,18 @@ static unsigned int mobicore_irq_id = MC_INTR_SSIQ;
 static int __init mobicore_init(void)
 {
 	int ret = 0;
-
 	dev_set_name(mcd, "mcd");
 #ifdef CONFIG_OF
 	struct device_node *node;
+#if 0
+	unsigned int irq_info[3] = {0, 0, 0};
+#endif
 #endif
 
 	/* Do not remove or change the following trace.
 	 * The string "MobiCore" is used to detect if <t-base is in of the image
 	 */
+	dev_info(mcd, "MobiCore Driver, Build: " "\n");
 	dev_info(mcd, "MobiCore mcDrvModuleApi version is %i.%i\n",
 		 MCDRVMODULEAPI_VERSION_MAJOR,
 		 MCDRVMODULEAPI_VERSION_MINOR);
@@ -1588,7 +1562,16 @@ static int __init mobicore_init(void)
 
 #ifdef CONFIG_OF
 	node = of_find_compatible_node(NULL, NULL, "trustonic,mobicore");
-	mobicore_irq_id = irq_of_parse_and_map(node, 0);
+#if 0
+	if (of_property_read_u32_array(node, "interrupts", irq_info, ARRAY_SIZE(irq_info))) {
+		MCDRV_DBG_ERROR(mcd,
+				"Fail to get SSIQ id from device tree!");
+		return -ENODEV;
+	}
+	mobicore_irq_id = irq_info[1];
+#else
+    mobicore_irq_id = irq_of_parse_and_map(node, 0);
+#endif
 	MCDRV_DBG_VERBOSE(mcd, "Interrupt from device tree is %d\n", mobicore_irq_id);
 #endif
 
@@ -1689,7 +1672,7 @@ bool mc_sleep_ready(void)
 }
 
 /* Linux Driver Module Macros */
-core_initcall(mobicore_init);
+module_init(mobicore_init);
 module_exit(mobicore_exit);
 MODULE_AUTHOR("Trustonic Limited");
 MODULE_LICENSE("GPL v2");

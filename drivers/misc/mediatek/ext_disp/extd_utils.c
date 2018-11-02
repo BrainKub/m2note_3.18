@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #include <linux/semaphore.h>
 #include <linux/mutex.h>
 #include <linux/time.h>
@@ -32,7 +19,11 @@ int extd_mutex_init(struct mutex *m)
 
 int extd_sw_mutex_lock(struct mutex *m)
 {
-	down(&extd_mutex);
+	if (down_interruptible(&extd_mutex)) {
+		pr_debug("DISP/ " "Can't get semaphore in %s()\n", __func__);
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -193,18 +184,6 @@ char *_extd_ioctl_spy(unsigned int cmd)
 
 	case MTK_HDMI_SCREEN_CAPTURE:
 		return "MTK_HDMI_SCREEN_CAPTURE";
-
-	case MTK_HDMI_FACTORY_CHIP_INIT:
-		return "MTK_HDMI_FACTORY_CHIP_INIT";
-
-	case MTK_HDMI_FACTORY_JUDGE_CALLBACK:
-		return "MTK_HDMI_FACTORY_JUDGE_CALLBACK";
-
-	case MTK_HDMI_FACTORY_START_DPI_AND_CONFIG:
-			return "MTK_HDMI_FACTORY_START_DPI_AND_CONFIG";
-
-	case MTK_HDMI_FACTORY_DPI_STOP_AND_POWER_OFF:
-			return "MTK_HDMI_FACTORY_DPI_STOP_AND_POWER_OFF";
 
 	default:
 		return "unknown ioctl command";
