@@ -1830,6 +1830,37 @@ initrd=0x44000000,0x300000 loglevel=8 androidboot.hardware=mt6735";
 						"mediatek,mt6753-touch";
 			vtouch-supply = <&mt_pmic_vgp1_ldo_reg>;
 		};
+		
+		touch_panel: touch_panel {
+ 			compatible = "mediatek,mt6735-touch_panel",
+						"mediatek,mt6735m-touch_panel",
+						"mediatek,mt6753-touch_panel";
+			vtouch-supply = <&mt_pmic_vgp1_ldo_reg>;
+ 		};
+ 		
+ 		hall_int: hall_int {
+			compatible = "mediatek,mt6735-hall_int",
+						"mediatek,mt6735m-hall_int",
+						"mediatek,mt6753-hall_int";
+		};
+
+ 		sim1_hot_plug: sim1_hot_plug {
+			compatible = "mediatek,mt6735-sim1_hot_plug",
+						"mediatek,mt6735m-sim1_hot_plug",
+						"mediatek,mt6753-sim1_hot_plug";
+		};
+		
+ 		dsi_te_1: dsi_te_1 {
+			compatible = "mediatek,mt6735-dsi_te_1",
+						"mediatek,mt6735m-dsi_te_1",
+						"mediatek,mt6753-dsi_te_1";
+		};
+
+ 		muic_tsu6721: muic_tsu6721 {
+			compatible = "mediatek,mt6735-muic_tsu6721",
+						"mediatek,mt6735m-muic_tsu6721",
+						"mediatek,mt6753-muic_tsu6721";
+		};
 
 		chr_stat: chr_stat@ {
 			compatible = "mediatek,mt6735-chr_stat",
