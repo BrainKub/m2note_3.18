@@ -757,6 +757,70 @@ initrd=0x44000000,0x300000 loglevel=8 androidboot.hardware=mt6735";
 			reg = <0x11220000 0x10000>;
 			#clock-cells = <1>;
 		};
+		
+		audio@11220000 {
+			compatible = "mediatek,audio";
+			reg = <0x11220000 0x10000>;
+			interrupts = <GIC_SPI 144 IRQ_TYPE_LEVEL_LOW>;
+		};
+
+
+		audgpio:mt_soc_dl1_pcm@11220000 {
+			compatible = "mediatek,mt-soc-dl1-pcm";
+			reg = <0x11220000 0x1000>;
+			interrupts = <GIC_SPI 144 IRQ_TYPE_LEVEL_LOW>;
+			clocks = <&audiosys AUDIO_AFE>,
+				<&audiosys AUDIO_I2S>,
+				<&audiosys AUDIO_DAC>,
+				<&audiosys AUDIO_DAC_PREDIS>,
+				<&audiosys AUDIO_ADC>,
+				<&audiosys AUDIO_22M>,
+				<&audiosys AUDIO_24M>,
+				<&audiosys AUDIO_APLL_TUNER>,
+				<&audiosys AUDIO_APLL2_TUNER>,
+				<&audiosys AUDIO_TML>,
+				<&infrasys INFRA_AUDIO>,
+				<&topckgen TOP_MUX_AUD1>,
+				<&topckgen TOP_MUX_AUD2>,
+				<&topckgen TOP_AD_APLL1_CK>,
+				<&topckgen TOP_WHPLL_AUDIO_CK>,
+				<&topckgen TOP_MUX_AUDIO>,
+				<&topckgen TOP_MUX_AUDINTBUS>,
+				<&topckgen TOP_SYSPLL1_D4>,
+				<&apmixedsys APMIXED_APLL1>,
+				<&apmixedsys APMIXED_APLL2>,
+				<&clk26m>;
+			clock-names = "aud_afe_clk",
+				"aud_i2s_clk",
+				"aud_dac_clk",
+				"aud_dac_predis_clk",
+				"aud_adc_clk",
+				"aud_apll22m_clk",
+				"aud_apll24m_clk",
+				"aud_apll1_tuner_clk",
+				"aud_apll2_tuner_clk",
+				"aud_tml_clk",
+				"aud_infra_clk",
+				"aud_mux1_clk",
+				"aud_mux2_clk",
+				"top_ad_apll1_clk",
+				"top_whpll_audio_clk",
+				"top_mux_audio",
+				"top_mux_audio_int",
+				"top_sys_pll1_d4",
+				"apmixed_apll1_clk",
+				"apmixed_apll2_clk",
+				"top_clk26m_clk";
+			audclk-gpio = <143 0>;
+			audmiso-gpio = <144 0>;
+			audmosi-gpio = <145 0>;
+			vowclk-gpio = <148 0>;
+			extspkamp-gpio = <117 0>;
+			i2s1clk-gpio = <80 0>;
+			i2s1dat-gpio = <78 0>;
+			i2s1mclk-gpio = <9 0>;
+			i2s1ws-gpio = <79 0>;
+		};
 
 		mfgsys: mfgsys@0x13000000 {
 			compatible = "mediatek,mt6735-mfgsys";
@@ -1338,6 +1402,10 @@ initrd=0x44000000,0x300000 loglevel=8 androidboot.hardware=mt6735";
 		als: als {
 			compatible = "mediatek, als-eint";
 		};
+		
+		audio_switch {
+			compatible = "mediatek,audio_switch";
+		};
 
 		gse_1: gse_1 {
 			compatible = "mediatek, gse_1-eint";
@@ -1763,7 +1831,7 @@ initrd=0x44000000,0x300000 loglevel=8 androidboot.hardware=mt6735";
 			reg = <0x10000000 0x1000>, /*AUDIO_INFRA_BASE_PHYSICAL*/
 				<0x18000000 0x10000>, /*PKV_PHYSICAL_BASE*/
 				<0x18080000 0x8000>; /*SRAM_BANK2*/
-			interrupts = <GIC_SPI 230 IRQ_TYPE_LEVEL_LOW>;
+			interrupts = <GIC_SPI 228 IRQ_TYPE_LEVEL_LOW>;
 		};
 
 
@@ -1793,27 +1861,6 @@ initrd=0x44000000,0x300000 loglevel=8 androidboot.hardware=mt6735";
 			VUSB33-supply = <&mt_pmic_vusb33_ldo_reg>;
 			iddig_gpio = <0 1>;
 			drvvbus_gpio = <83 2>;
-		};
-
-		audio@11220000 {
-			compatible = "mediatek,audio";
-			reg = <0x11220000 0x10000>;
-			interrupts = <GIC_SPI 144 IRQ_TYPE_LEVEL_LOW>;
-		};
-
-		mt_soc_dl1_pcm@11220000 {
-			compatible = "mediatek,mt-soc-dl1-pcm";
-			reg = <0x11220000 0x1000>;
-			interrupts = <GIC_SPI 144 IRQ_TYPE_LEVEL_LOW>;
-			audclk-gpio = <143 0>;
-			audmiso-gpio = <144 0>;
-			audmosi-gpio = <145 0>;
-			vowclk-gpio = <148 0>;
-			extspkamp-gpio = <117 0>;
-			i2s1clk-gpio = <80 0>;
-			i2s1dat-gpio = <78 0>;
-			i2s1mclk-gpio = <9 0>;
-			i2s1ws-gpio = <79 0>;
 		};
 
 		mt_soc_ul1_pcm{
